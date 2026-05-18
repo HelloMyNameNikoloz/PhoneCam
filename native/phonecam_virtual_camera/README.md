@@ -9,14 +9,14 @@ Current state:
 - UMDF stub driver package shape is present.
 - COM media source package shape is present.
 - INF friendly name is `PhoneCam`.
-- Build requires the Windows Driver Kit toolsets.
+- `tools/build_native_camera.ps1` builds successfully with VS Build Tools 2022, Windows SDK 10.0.26100, and WDK 10.0.26100.
 - The media source still uses the sample frame generator until the PhoneCam frame bridge is wired in.
 
 Required local tools:
 
 - Visual Studio Build Tools 2022
-- Windows 10/11 SDK
-- Windows Driver Kit with Visual Studio integration
+- Windows SDK 10.0.26100
+- Windows Driver Kit 10.0.26100
 
 Build from the repository root:
 

@@ -15,9 +15,20 @@ if (-not (Test-Path $inf)) {
 }
 
 $devgen = Get-Command devgen.exe -ErrorAction SilentlyContinue
-if (-not $devgen) {
+if ($devgen) {
+    $devgenPath = $devgen.Source
+}
+else {
+    $toolsRoot = "${env:ProgramFiles(x86)}\Windows Kits\10\Tools"
+    $devgenPath = Get-ChildItem $toolsRoot -Recurse -Filter devgen.exe -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -match "\\x64\\devgen.exe$" } |
+        Sort-Object FullName -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+
+if (-not $devgenPath) {
     throw "devgen.exe was not found. Install the Windows Driver Kit tools."
 }
 
-& $devgen.Source /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
+& $devgenPath /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
 & pnputil /add-driver $inf /install

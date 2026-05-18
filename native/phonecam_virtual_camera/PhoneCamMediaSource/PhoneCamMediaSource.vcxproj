@@ -196,6 +196,22 @@
     <ClInclude Include="SimpleMediaStream.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
+  <Target Name="GetDriverProjectAttributes" Returns="@(DriverProjectAttributes)">
+    <ItemGroup>
+      <DriverProjectAttributes Include="$(ProjectGuid)">
+        <DriverType></DriverType>
+        <PlatformToolset>$(PlatformToolset)</PlatformToolset>
+        <IsKernelModeToolset>false</IsKernelModeToolset>
+        <IsUserModeToolset>false</IsUserModeToolset>
+        <ProjectPath>$(MSBuildProjectFullPath)</ProjectPath>
+      </DriverProjectAttributes>
+    </ItemGroup>
+  </Target>
+  <Target Name="GetPackageFiles" Returns="@(FullyQualifiedFilesToPackage)">
+    <ItemGroup>
+      <FullyQualifiedFilesToPackage Include="$(TargetPath)" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

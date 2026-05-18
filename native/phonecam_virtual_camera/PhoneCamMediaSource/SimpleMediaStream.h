@@ -21,7 +21,7 @@ namespace winrt::WindowsSample::implementation
         IFACEMETHODIMP QueueEvent(MediaEventType met, REFGUID guidExtendedType, HRESULT hrStatus, const PROPVARIANT* pvValue) override;
 
         // IMFMediaStream
-        IFACEMETHODIMP GetPhoneCamMediaSource(IMFMediaSource** ppPhoneCamMediaSource) override;
+        IFACEMETHODIMP GetMediaSource(IMFMediaSource** ppMediaSource) override;
         IFACEMETHODIMP GetStreamDescriptor(IMFStreamDescriptor** ppStreamDescriptor) override;
         IFACEMETHODIMP RequestSample(IUnknown* pToken) override;
 

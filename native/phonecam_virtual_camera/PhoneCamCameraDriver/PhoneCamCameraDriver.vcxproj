@@ -60,6 +60,10 @@
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <RootNamespace>PhoneCamCameraDriver</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+    <WDKContentRoot Condition="'$(WDKContentRoot)' == ''">$(WindowsSdkDir)</WDKContentRoot>
+    <WDKBuildFolder Condition="'$(WDKBuildFolder)' == ''">10.0.26100.0</WDKBuildFolder>
+    <DDKPlatform Condition="'$(DDKPlatform)' == '' and '$(Platform)' == 'x64'">x64</DDKPlatform>
+    <DDKPlatform Condition="'$(DDKPlatform)' == '' and '$(Platform)' == 'ARM64'">arm64</DDKPlatform>
   </PropertyGroup>
   <PropertyGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PlatformToolset>WindowsUserModeDriver10.0</PlatformToolset>
@@ -109,6 +113,17 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true'">
+    <IsUserModeToolset>true</IsUserModeToolset>
+    <DriverType>UMDF</DriverType>
+    <UMDF_VERSION_MINOR Condition="'$(UMDF_VERSION_MINOR)' == ''">35</UMDF_VERSION_MINOR>
+  </PropertyGroup>
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Default.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Default.props')" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\Windows.UserMode.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\Windows.UserMode.props')" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Common.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Common.props')" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.UserMode.Default.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.UserMode.Default.props')" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.LateEvaluation.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.LateEvaluation.props')" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.UserMode.LateEvaluation.props" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.UserMode.LateEvaluation.props')" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengRemoteDebugger</DebuggerFlavor>
   </PropertyGroup>
@@ -169,7 +184,17 @@
       <AdditionalDependencies>%(AdditionalDependencies);OneCoreUAP.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(WDKContentRoot)Include\wdf\umdf\2.35;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(WDKContentRoot)Lib\wdf\umdf\$(DDKPlatform)\2.35;$(WDKContentRoot)Lib\$(WindowsTargetPlatformVersion)\um\$(DDKPlatform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);WdfDriverStubUm.lib;ntdll.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Common.targets" Condition="'$(PhoneCamUseInstalledWdkProps)' == 'true' and Exists('$(WDKContentRoot)build\$(WDKBuildFolder)\WindowsDriver.Common.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

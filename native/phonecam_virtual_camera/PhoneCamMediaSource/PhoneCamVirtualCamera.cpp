@@ -127,7 +127,7 @@ namespace winrt::WindowsSample::implementation
         *pdwCharacteristics = 0;
 
         RETURN_IF_FAILED(_CheckShutdownRequiresLock());
-        *pdwCharacteristics = MFPhoneCamMediaSource_IS_LIVE;
+        *pdwCharacteristics = MFMEDIASOURCE_IS_LIVE;
 
         return S_OK;
     }

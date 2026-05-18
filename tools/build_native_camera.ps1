@@ -12,15 +12,27 @@ if (-not $msbuild) {
     throw "MSBuild Build Tools were not found."
 }
 
-$required = @("WindowsApplicationForDrivers10.0", "WindowsUserModeDriver10.0")
-$vsRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $msbuild))
-$toolsetRoot = Join-Path $vsRoot "Microsoft\VC\v170\Platforms\x64\PlatformToolsets"
-if (-not (Test-Path $toolsetRoot)) {
-    $toolsetRoot = Join-Path $vsRoot "Microsoft\VC\v160\Platforms\x64\PlatformToolsets"
-}
-$missing = $required | Where-Object { -not (Test-Path (Join-Path $toolsetRoot $_)) }
-if ($missing.Count -gt 0) {
-    throw "Missing WDK Visual Studio toolsets: $($missing -join ', '). Install the Windows Driver Kit with VS integration."
+$sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
+$sdkVersion = "10.0.26100.0"
+$wdkBuild = Join-Path $sdkRoot "build\$sdkVersion"
+
+if (-not (Test-Path $wdkBuild)) {
+    throw "Windows Driver Kit $sdkVersion was not found. Install WDK 10.0.26100 or newer."
 }
 
-& $msbuild $solution /p:Configuration=Release /p:Platform=x64 /m
+$uapProps = Join-Path $sdkRoot "DesignTime\CommonConfiguration\Neutral\UAP\$sdkVersion\UAP.props"
+if (-not (Test-Path $uapProps)) {
+    throw "Windows SDK $sdkVersion desktop/UAP design-time files were not found."
+}
+
+& $msbuild $solution `
+    /p:Configuration=Release `
+    /p:Platform=x64 `
+    /p:PlatformTarget=x64 `
+    /p:PlatformToolset=v143 `
+    /p:WindowsTargetPlatformVersion=$sdkVersion `
+    /p:PhoneCamUseInstalledWdkProps=true `
+    "/p:WDKContentRoot=$sdkRoot\" `
+    /p:WDKBuildFolder=$sdkVersion `
+    /p:SkipPackageVerification=true `
+    /m

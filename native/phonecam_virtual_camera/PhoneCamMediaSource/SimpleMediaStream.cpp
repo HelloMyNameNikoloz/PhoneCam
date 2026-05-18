@@ -140,17 +140,17 @@ namespace winrt::WindowsSample::implementation
     }
 
     // IMFMediaStream
-    IFACEMETHODIMP SimpleMediaStream::GetPhoneCamMediaSource(
-            _COM_Outptr_ IMFMediaSource** ppPhoneCamMediaSource
+    IFACEMETHODIMP SimpleMediaStream::GetMediaSource(
+            _COM_Outptr_ IMFMediaSource** ppMediaSource
         )
     {
         winrt::slim_lock_guard lock(m_Lock);
 
-        RETURN_HR_IF_NULL(E_POINTER, ppPhoneCamMediaSource);
-        *ppPhoneCamMediaSource = nullptr;
+        RETURN_HR_IF_NULL(E_POINTER, ppMediaSource);
+        *ppMediaSource = nullptr;
 
         RETURN_IF_FAILED(_CheckShutdownRequiresLock());
-        RETURN_IF_FAILED(m_parent.copy_to(ppPhoneCamMediaSource));
+        RETURN_IF_FAILED(m_parent.copy_to(ppMediaSource));
 
         return S_OK;
     }
