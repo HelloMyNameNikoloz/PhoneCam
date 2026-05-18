@@ -44,6 +44,7 @@ window.PhoneCamRender = {
     document.querySelector("#resolution").value = settings.resolution;
     document.querySelector("#fps").value = String(settings.fps);
     document.querySelector("#always-on-top").checked = Boolean(settings.alwaysOnTop);
+    document.querySelector("#hide-preview").checked = Boolean(settings.hidePreview);
   },
 
   sourceCard(state) {
@@ -69,9 +70,8 @@ window.PhoneCamRender = {
 
   stage(state) {
     const settings = state.settings;
-    const receiver = state.receiver || {};
     const running = state.cameraRunning;
-    const subtitle = receiver.active ? "Receiving phone video. OBS can use the source URL below." : this.previewHint(state);
+    const subtitle = running ? "PhoneCam Preview is running automatically." : this.previewHint(state);
     document.querySelector("#stage-subtitle").textContent = subtitle;
     document.querySelector("#stage-metrics").innerHTML = [
       `<span class="badge accent">${this.resolutionLabel(settings.resolution)}</span>`,
@@ -79,23 +79,22 @@ window.PhoneCamRender = {
       `<span class="badge accent">${settings.cameraFacing}</span>`,
     ].join("");
 
-    const content = receiver.active
-      ? `<img class="live-preview" src="${receiver.streamUrl}" alt="PhoneCam live preview" />`
+    const content = running
+      ? `<div class="camera-glyph" aria-hidden="true"></div>
+        <div class="viewer-text">
+          <h2>Preview active</h2>
+          <p>${settings.hidePreview ? "The preview window is off-screen and ready for OBS." : "Capture 'PhoneCam Preview' in OBS Window Capture."}</p>
+        </div>`
       : `<div class="camera-glyph" aria-hidden="true"></div>
         <div class="viewer-text">
-          <h2>Waiting for phone stream</h2>
-          <p>Open the PhoneCam Android sender and connect to this Windows app.</p>
+          <h2>Waiting for phone</h2>
+          <p>Connect and authorize an Android phone by USB.</p>
         </div>`;
     document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">${content}</div>
     <div class="stage-toast">
-      <strong>Android sender</strong>
-      <button class="inline-copy" type="button" data-copy="${receiver.postUrl || ""}">Copy</button>
-      <span>${receiver.postUrl || "Receiver starting..."}</span>
-      <strong class="toast-line">OBS Browser Source</strong>
-      <button class="inline-copy" type="button" data-copy="${receiver.obsUrl || ""}">Copy</button>
-      <span>${receiver.obsUrl || "Receiver starting..."}</span>
+      <strong>OBS Window Capture</strong>
+      <span>Select 'PhoneCam Preview'. Enable Hide Preview Window if the preview should stay out of the way.</span>
     </div>`;
-    this.bindCopyButtons();
   },
 
   resolutionLabel(resolution) {
@@ -109,8 +108,10 @@ window.PhoneCamRender = {
   },
 
   previewHint(state) {
-    if (state.receiver && !state.receiver.active) return `Receiver ready. Enter ${state.receiver.postUrl} in the Android sender.`;
-    return "Waiting for phone video.";
+    if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
+    if (state.missingScrcpy) return "scrcpy.exe is missing from the bundled bin folder.";
+    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Starting camera automatically.";
+    return "Waiting for an authorized Android phone.";
   },
 
   selectedDevice(state) {
@@ -119,8 +120,10 @@ window.PhoneCamRender = {
   },
 
   deviceMessage(state, device) {
+    if (state.missingAdb) return "Bundled adb.exe was not found in the bin folder.";
+    if (state.missingScrcpy) return "Bundled scrcpy.exe was not found in the bin folder.";
     if (state.error) return state.error;
-    if (!device) return "Windows receiver is ready. Use the Android sender app to start video.";
+    if (!device) return "Connect your Android phone with USB and accept the debugging prompt.";
     if (device.status === "unauthorized") return "Unlock your phone and accept the USB debugging prompt.";
     if (device.status === "offline") return "Reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.";
     return "Authorized Android device connected.";

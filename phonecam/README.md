@@ -1,15 +1,15 @@
 # PhoneCam
 
-PhoneCam turns an Android phone into an OBS-ready camera source. The Windows app hosts a local receiver and OBS reads it as a Browser Source, so no separate preview window is required.
+PhoneCam turns an Android phone into a clean USB camera preview using ADB and scrcpy camera mode.
 
-When PhoneCam is open it stays available in the Windows system tray and keeps the receiver alive until you quit manually from the tray.
+When PhoneCam is open it stays available in the Windows system tray, starts the camera automatically when an authorized phone is connected, and keeps `PhoneCam Preview` running until you quit manually from the tray.
 
 ## Requirements
 
 - Windows 10 or Windows 11
 - Python 3.10+
-- Android PhoneCam Sender installed on the phone
-- Phone and PC on the same private network
+- `adb.exe`, `AdbWinApi.dll`, `AdbWinUsbApi.dll`, and `scrcpy.exe` placed in `bin/`
+- An Android phone that works with ADB and scrcpy camera mode
 
 Install Python dependencies:
 
@@ -23,22 +23,19 @@ Run in development:
 python app/main.py
 ```
 
-## Android Sender
+## Android Setup
 
-Build and install the sender from the repo root:
-
-```powershell
-.\tools\build_android_sender.ps1 -Install
-```
-
-Open the Windows app, copy the Android sender URL, paste it into the Android app, and start streaming.
+1. Enable Developer Options.
+2. Enable USB Debugging.
+3. Connect phone via USB.
+4. Accept the RSA debugging prompt on the phone.
 
 ## OBS Setup
 
 1. Open OBS.
-2. Add a Browser Source.
-3. Set URL to `http://127.0.0.1:4767/obs`.
-4. Set size to `1920x1080` for the default stream.
+2. Add a Window Capture source.
+3. Select `PhoneCam Preview`.
+4. Enable Hide Preview Window in PhoneCam if the preview should stay off-screen.
 5. Use your microphone as a separate audio source.
 
 ## Build PhoneCam.exe
@@ -57,11 +54,13 @@ dist/PhoneCam.exe
 
 ## Troubleshooting
 
-- Phone cannot connect: confirm both devices are on the same private network and Windows Firewall allows the receiver.
+- Phone not detected: confirm the cable supports data, USB debugging is enabled, and `adb.exe` is present in `bin/`.
+- Unauthorized: unlock your phone and accept the USB debugging prompt.
+- Offline: reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.
 - Lag: choose `1920x1080` at `30 FPS`.
-- Black preview: confirm Android Sender is running and OBS points to `http://127.0.0.1:4767/obs`.
+- Black preview: reconnect the phone and confirm no other app is using the camera.
 - 4K too heavy: use 1080p30 for best stability. 4K is recommended only when the phone and PC handle it smoothly.
 
 ## Notes
 
-PhoneCam does not appear under OBS `Video Capture Device` unless the native signed Windows camera package is installed. The Browser Source path is the no-window OBS integration.
+PhoneCam uses USB only in the desktop app. Phone audio is disabled by default.

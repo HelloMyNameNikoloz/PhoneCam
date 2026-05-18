@@ -13,6 +13,7 @@ DEFAULT_SETTINGS = {
     "resolution": "1920x1080",
     "fps": 30,
     "alwaysOnTop": False,
+    "hidePreview": False,
     "keepScreenOff": False,
     "selectedDeviceId": None,
 }

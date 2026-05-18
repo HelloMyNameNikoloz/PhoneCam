@@ -1,7 +1,7 @@
 window.PhoneCamControls = {
   bind() {
     document.addEventListener("click", (event) => this.handleClick(event));
-    ["device-select", "camera-facing", "resolution", "fps", "always-on-top"]
+    ["device-select", "camera-facing", "resolution", "fps", "always-on-top", "hide-preview"]
       .forEach((id) => document.querySelector(`#${id}`).addEventListener("change", () => this.saveSettings()));
   },
 
@@ -12,6 +12,7 @@ window.PhoneCamControls = {
       resolution: document.querySelector("#resolution").value,
       fps: Number(document.querySelector("#fps").value),
       alwaysOnTop: document.querySelector("#always-on-top").checked,
+      hidePreview: document.querySelector("#hide-preview").checked,
     };
   },
 

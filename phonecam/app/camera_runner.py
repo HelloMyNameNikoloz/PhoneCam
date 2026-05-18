@@ -45,6 +45,8 @@ class CameraRunner:
             command.extend(["-s", str(device_id)])
         if settings.get("alwaysOnTop"):
             command.append("--always-on-top")
+        if settings.get("hidePreview"):
+            command.extend(["--window-x=-32000", "--window-y=-32000", "--window-width=320", "--window-height=180"])
         if settings.get("keepScreenOff"):
             command.append("--turn-screen-off")
         return command
