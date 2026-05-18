@@ -1,0 +1,232 @@
+.nav-item {
+  display: block;
+  padding: 11px 13px;
+  border-radius: 16px;
+  color: var(--text-soft);
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: var(--elevated);
+  color: var(--text);
+}
+
+.panel,
+.card,
+.empty-state {
+  border: 1px solid rgba(48, 50, 61, 0.82);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panel {
+  padding: 22px;
+}
+
+.card {
+  min-height: 172px;
+  padding: 20px;
+}
+
+.card-body {
+  display: grid;
+  gap: 14px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(48, 50, 61, 0.68);
+}
+
+.metric span {
+  color: var(--muted);
+}
+
+.status-pill,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--elevated);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.status-pill.running,
+.badge.success {
+  border-color: rgba(34, 197, 94, 0.42);
+  color: var(--success);
+}
+
+.status-pill.connected {
+  border-color: rgba(16, 163, 127, 0.44);
+  color: var(--accent-hover);
+}
+
+.status-pill.error,
+.badge.error {
+  border-color: rgba(239, 68, 68, 0.42);
+  color: var(--error);
+}
+
+.badge.warning {
+  border-color: rgba(245, 158, 11, 0.42);
+  color: var(--warning);
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+select,
+.button {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--elevated);
+  color: var(--text);
+  outline: none;
+}
+
+select {
+  width: 100%;
+  padding: 0 13px;
+}
+
+.button {
+  padding: 0 18px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.button:hover {
+  border-color: rgba(244, 244, 245, 0.24);
+  transform: translateY(-1px);
+}
+
+.button.primary {
+  border-color: rgba(16, 163, 127, 0.62);
+  background: var(--accent);
+  color: #06120f;
+  font-weight: 700;
+}
+
+.button.primary:hover {
+  background: var(--accent-hover);
+}
+
+.button.ghost {
+  background: transparent;
+}
+
+.toggle-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(32, 34, 43, 0.54);
+  cursor: pointer;
+}
+
+.toggle-card input {
+  display: none;
+}
+
+.toggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #30323d;
+}
+
+.toggle::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-soft);
+  content: "";
+  transition: left 160ms ease, background 160ms ease;
+}
+
+.toggle-card input:checked + .toggle {
+  background: rgba(16, 163, 127, 0.42);
+}
+
+.toggle-card input:checked + .toggle::after {
+  left: 22px;
+  background: var(--accent-hover);
+}
+
+.toggle-card small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.log-panel {
+  height: 188px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #0b0c10;
+  color: var(--text-soft);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+}
+
+.log-line {
+  display: grid;
+  grid-template-columns: 64px 72px 1fr;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 34px;
+  text-align: center;
+}
+
+.empty-state ol {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  color: var(--text-soft);
+  text-align: left;
+}
+
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 35%, rgba(16, 163, 127, 0.35), transparent 55%), var(--elevated);
+}
