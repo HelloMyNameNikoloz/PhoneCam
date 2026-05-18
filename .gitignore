@@ -16,3 +16,6 @@ phonecam/dist/
 phonecam/build/
 phonecam/*.spec
 phonecam/app/__pycache__/
+android/**/build/
+android/**/.gradle/
+android/**/local.properties

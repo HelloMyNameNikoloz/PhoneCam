@@ -24,7 +24,21 @@ Build from the repository root:
 .\tools\build_native_camera.ps1
 ```
 
-Install from an elevated PowerShell after a successful build:
+Sign from elevated PowerShell after a successful build:
+
+```powershell
+.\tools\sign_virtual_camera_test.ps1
+```
+
+Enable Windows test signing once, then reboot:
+
+```powershell
+bcdedit /set testsigning on
+```
+
+Secure Boot blocks Windows test signing. Disable Secure Boot for local development, or use Microsoft attestation/WHQL signing for production installs.
+
+Install from elevated PowerShell after signing:
 
 ```powershell
 .\tools\install_virtual_camera.ps1

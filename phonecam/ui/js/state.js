@@ -14,6 +14,14 @@ window.PhoneCamState = {
     error: null,
     missingAdb: false,
     missingScrcpy: false,
+    receiver: {
+      active: false,
+      framesReceived: 0,
+      frameAgeMs: null,
+      obsUrl: "http://127.0.0.1:4767/obs",
+      streamUrl: "http://127.0.0.1:4767/stream.mjpg",
+      postUrl: "http://127.0.0.1:4767/frame",
+    },
     logs: [],
   },
 

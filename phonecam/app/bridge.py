@@ -8,6 +8,7 @@ from app.camera_runner import CameraRunner
 from app.config import DEFAULT_SETTINGS
 from app.device_detector import DeviceDetector
 from app.logger import MemoryLogger
+from app.obs_receiver import ObsReceiver
 from app.paths import adb_path, scrcpy_path, settings_path
 
 
@@ -16,16 +17,18 @@ class PhoneCamBridge:
         self.logger = MemoryLogger()
         self.detector = DeviceDetector(adb_path())
         self.runner = CameraRunner(scrcpy_path())
+        self.receiver = ObsReceiver()
         self.settings = self.load_settings()
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
+        self.receiver.start()
         self.logger.info("PhoneCam initialized")
+        self.logger.success(f"OBS source ready at {self.receiver.status()['obsUrl']}")
 
     def get_status(self) -> Dict[str, Any]:
         self._handle_disconnected_camera()
         if not self.runner.is_running():
             self._refresh_devices(log_changes=False)
-        self._handle_autostart()
         return self._status_payload()
 
     def refresh_devices(self) -> Dict[str, Any]:
@@ -75,12 +78,13 @@ class PhoneCamBridge:
     def shutdown(self) -> None:
         if self.runner.stop():
             self.logger.info("Stopped camera on exit")
+        self.receiver.stop()
 
     def _refresh_devices(self, log_changes: bool) -> None:
         previous = {(d["id"], d["status"]) for d in self.devices}
         result = self.detector.scan()
         self.devices = result.devices
-        self.device_error = result.error
+        self.device_error = None if result.missing_adb else result.error
         current = {(d["id"], d["status"]) for d in self.devices}
         if log_changes and result.error:
             self.logger.error(result.error)
@@ -120,11 +124,13 @@ class PhoneCamBridge:
         return settings
 
     def _status_payload(self, error: str | None = None) -> Dict[str, Any]:
+        receiver = self.receiver.status()
         status = self._app_status(error)
         return {
             "devices": self.devices,
             "settings": self.settings,
-            "cameraRunning": self.runner.is_running(),
+            "cameraRunning": self.runner.is_running() or receiver["active"],
+            "receiver": receiver,
             "status": status,
             "error": error or self.device_error,
             "missingAdb": not adb_path().exists(),
@@ -133,9 +139,9 @@ class PhoneCamBridge:
         }
 
     def _app_status(self, error: str | None) -> str:
-        if error or self.device_error or not adb_path().exists() or not scrcpy_path().exists():
+        if error or self.device_error:
             return "error"
-        if self.runner.is_running():
+        if self.runner.is_running() or self.receiver.status()["active"]:
             return "running"
         if any(d["status"] == "device" for d in self.devices):
             return "connected"

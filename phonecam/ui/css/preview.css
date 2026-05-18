@@ -35,6 +35,14 @@
   background: #15161c;
 }
 
+.live-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #000;
+}
+
 .camera-glyph {
   position: relative;
   width: 104px;
@@ -88,4 +96,24 @@
   background: rgba(15, 16, 20, 0.82);
   color: var(--text-soft);
   backdrop-filter: blur(14px);
+}
+
+.stage-toast strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.stage-toast .toast-line {
+  margin-top: 10px;
+}
+
+.inline-copy {
+  float: right;
+  margin-left: 12px;
+  border: 1px solid rgba(16, 163, 127, 0.44);
+  border-radius: 999px;
+  background: rgba(16, 163, 127, 0.12);
+  color: var(--accent-hover);
+  cursor: pointer;
 }

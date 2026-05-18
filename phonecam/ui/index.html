@@ -73,12 +73,12 @@
         </section>
 
         <section class="side-panel" data-panel-view="setup">
-          <h2>Connect phone</h2>
+          <h2>Connect sender</h2>
           <ol class="setup-list">
-            <li>Enable Developer Options.</li>
-            <li>Enable USB Debugging.</li>
-            <li>Connect with a USB data cable.</li>
-            <li>Accept the debugging prompt.</li>
+            <li>Install the PhoneCam Android sender.</li>
+            <li>Keep phone and PC on the same network.</li>
+            <li>Enter this PC IP and port 4767 in the sender.</li>
+            <li>Add the PhoneCam Browser Source URL in OBS.</li>
           </ol>
           <div id="setup-message" class="notice"></div>
         </section>
@@ -89,7 +89,7 @@
 
         <section class="side-panel" data-panel-view="about">
           <h2>PhoneCam</h2>
-          <p>PhoneCam uses ADB and scrcpy camera mode to create a clean wired preview window from your Android phone.</p>
+          <p>PhoneCam receives video from the Android sender and exposes an OBS Browser Source without a separate preview window.</p>
           <p class="muted">Close the window to keep it running in the system tray. Quit from the tray menu when finished.</p>
         </section>
       </aside>

@@ -69,8 +69,9 @@ window.PhoneCamRender = {
 
   stage(state) {
     const settings = state.settings;
+    const receiver = state.receiver || {};
     const running = state.cameraRunning;
-    const subtitle = running ? "PhoneCam Preview is running automatically." : this.previewHint(state);
+    const subtitle = receiver.active ? "Receiving phone video. OBS can use the source URL below." : this.previewHint(state);
     document.querySelector("#stage-subtitle").textContent = subtitle;
     document.querySelector("#stage-metrics").innerHTML = [
       `<span class="badge accent">${this.resolutionLabel(settings.resolution)}</span>`,
@@ -78,14 +79,23 @@ window.PhoneCamRender = {
       `<span class="badge accent">${settings.cameraFacing}</span>`,
     ].join("");
 
-    document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">
-      <div class="camera-glyph" aria-hidden="true"></div>
-      <div class="viewer-text">
-        <h2>${running ? "Preview active" : "Ready when your phone is"}</h2>
-        <p>${running ? "PhoneCam will keep this stream alive until you quit the app." : "Connect and authorize a phone. PhoneCam starts the camera automatically."}</p>
-      </div>
-    </div>
-    <div class="stage-toast">${this.deviceMessage(state, this.selectedDevice(state))}</div>`;
+    const content = receiver.active
+      ? `<img class="live-preview" src="${receiver.streamUrl}" alt="PhoneCam live preview" />`
+      : `<div class="camera-glyph" aria-hidden="true"></div>
+        <div class="viewer-text">
+          <h2>Waiting for phone stream</h2>
+          <p>Open the PhoneCam Android sender and connect to this Windows app.</p>
+        </div>`;
+    document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">${content}</div>
+    <div class="stage-toast">
+      <strong>Android sender</strong>
+      <button class="inline-copy" type="button" data-copy="${receiver.postUrl || ""}">Copy</button>
+      <span>${receiver.postUrl || "Receiver starting..."}</span>
+      <strong class="toast-line">OBS Browser Source</strong>
+      <button class="inline-copy" type="button" data-copy="${receiver.obsUrl || ""}">Copy</button>
+      <span>${receiver.obsUrl || "Receiver starting..."}</span>
+    </div>`;
+    this.bindCopyButtons();
   },
 
   resolutionLabel(resolution) {
@@ -99,10 +109,8 @@ window.PhoneCamRender = {
   },
 
   previewHint(state) {
-    if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
-    if (state.missingScrcpy) return "scrcpy.exe is missing from the bundled bin folder.";
-    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Starting camera automatically.";
-    return "Waiting for an authorized Android phone.";
+    if (state.receiver && !state.receiver.active) return `Receiver ready. Enter ${state.receiver.postUrl} in the Android sender.`;
+    return "Waiting for phone video.";
   },
 
   selectedDevice(state) {
@@ -111,13 +119,17 @@ window.PhoneCamRender = {
   },
 
   deviceMessage(state, device) {
-    if (state.missingAdb) return "Bundled adb.exe was not found in the bin folder.";
-    if (state.missingScrcpy) return "Bundled scrcpy.exe was not found in the bin folder.";
     if (state.error) return state.error;
-    if (!device) return "Connect your Android phone with USB and accept the debugging prompt.";
+    if (!device) return "Windows receiver is ready. Use the Android sender app to start video.";
     if (device.status === "unauthorized") return "Unlock your phone and accept the USB debugging prompt.";
     if (device.status === "offline") return "Reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.";
     return "Authorized Android device connected.";
+  },
+
+  bindCopyButtons() {
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      button.onclick = () => navigator.clipboard?.writeText(button.dataset.copy || "");
+    });
   },
 
   logs(logs) {
