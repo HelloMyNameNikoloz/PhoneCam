@@ -2,12 +2,10 @@ window.PhoneCamState = {
   data: {
     devices: [],
     settings: {
-      autoStart: true,
       cameraFacing: "back",
       resolution: "1920x1080",
       fps: 30,
       alwaysOnTop: false,
-      stabilityMode: false,
       selectedDeviceId: null,
     },
     cameraRunning: false,

@@ -9,18 +9,10 @@ SUPPORTED_FPS = [24, 30, 60]
 CAMERA_FACINGS = ["back", "front"]
 
 DEFAULT_SETTINGS = {
-    "autoStart": True,
     "cameraFacing": "back",
     "resolution": "1920x1080",
     "fps": 30,
     "alwaysOnTop": False,
     "keepScreenOff": False,
-    "stabilityMode": False,
     "selectedDeviceId": None,
-}
-
-STABILITY_SETTINGS = {
-    "cameraFacing": "back",
-    "resolution": "1920x1080",
-    "fps": 30,
 }

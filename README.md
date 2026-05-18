@@ -49,7 +49,7 @@ dist/PhoneCam.exe
 - Phone not detected: confirm the cable supports data, USB debugging is enabled, and `adb.exe` is present in `bin/`.
 - Unauthorized: unlock your phone and accept the USB debugging prompt.
 - Offline: reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.
-- Lag: use Stability Mode or choose `1920x1080` at `30 FPS`.
+- Lag: choose `1920x1080` at `30 FPS`.
 - Black preview: stop the camera, reconnect the phone, and start again. Confirm no other app is using the camera.
 - 4K too heavy: use 1080p30 for best stability. 4K is recommended only when the phone and PC handle it smoothly.
 

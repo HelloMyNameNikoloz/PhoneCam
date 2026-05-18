@@ -43,9 +43,7 @@ window.PhoneCamRender = {
     document.querySelector("#camera-facing").value = settings.cameraFacing;
     document.querySelector("#resolution").value = settings.resolution;
     document.querySelector("#fps").value = String(settings.fps);
-    document.querySelector("#auto-start").checked = Boolean(settings.autoStart);
     document.querySelector("#always-on-top").checked = Boolean(settings.alwaysOnTop);
-    document.querySelector("#stability-mode").checked = Boolean(settings.stabilityMode);
   },
 
   sourceCard(state) {
@@ -75,7 +73,7 @@ window.PhoneCamRender = {
     const subtitle = running ? "PhoneCam Preview is running automatically." : this.previewHint(state);
     document.querySelector("#stage-subtitle").textContent = subtitle;
     document.querySelector("#stage-metrics").innerHTML = [
-      `<span class="badge accent">${settings.resolution}</span>`,
+      `<span class="badge accent">${this.resolutionLabel(settings.resolution)}</span>`,
       `<span class="badge accent">${settings.fps} FPS</span>`,
       `<span class="badge accent">${settings.cameraFacing}</span>`,
     ].join("");
@@ -84,20 +82,26 @@ window.PhoneCamRender = {
       <div class="camera-glyph" aria-hidden="true"></div>
       <div class="viewer-text">
         <h2>${running ? "Preview active" : "Ready when your phone is"}</h2>
-        <p>${running ? "Use the PhoneCam Preview window for capture." : "Connect and authorize a phone, or press Start after selecting a device."}</p>
-      </div>
-      <div class="viewer-actions">
-        <button class="button primary" id="viewer-start" type="button">${running ? "Restart" : "Start Camera"}</button>
-        <button class="button" id="viewer-stop" type="button">Stop</button>
+        <p>${running ? "PhoneCam will keep this stream alive until you quit the app." : "Connect and authorize a phone. PhoneCam starts the camera automatically."}</p>
       </div>
     </div>
     <div class="stage-toast">${this.deviceMessage(state, this.selectedDevice(state))}</div>`;
   },
 
+  resolutionLabel(resolution) {
+    const labels = {
+      "1280x720": "720p",
+      "1920x1080": "1080p",
+      "2560x1440": "2K",
+      "3840x2160": "4K",
+    };
+    return labels[resolution] || resolution;
+  },
+
   previewHint(state) {
     if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
     if (state.missingScrcpy) return "scrcpy.exe is missing from the bundled bin folder.";
-    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Camera is ready to start.";
+    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Starting camera automatically.";
     return "Waiting for an authorized Android phone.";
   },
 

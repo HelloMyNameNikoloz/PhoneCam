@@ -19,9 +19,6 @@
           <span>USB Android Camera</span>
         </div>
         <div class="toolbar">
-          <button id="refresh-devices" class="tool-button" type="button">Refresh</button>
-          <button id="stop-camera" class="tool-button" type="button">Stop</button>
-          <button id="start-camera" class="tool-button primary" type="button">Start</button>
           <span id="status-pill" class="status-pill waiting">Waiting</span>
         </div>
       </header>
@@ -61,23 +58,13 @@
           <label class="field">
             <span>Resolution</span>
             <select id="resolution">
-              <option>1280x720</option>
-              <option>1920x1080</option>
-              <option>2560x1440</option>
-              <option>3840x2160</option>
+              <option value="1280x720">720p</option>
+              <option value="1920x1080">1080p</option>
+              <option value="2560x1440">2K</option>
+              <option value="3840x2160">4K</option>
             </select>
           </label>
           <div class="divider"></div>
-          <label class="toggle-card">
-            <input id="auto-start" type="checkbox" />
-            <span class="toggle"></span>
-            <span><strong>Auto Start</strong><small>Start when a phone is ready</small></span>
-          </label>
-          <label class="toggle-card">
-            <input id="stability-mode" type="checkbox" />
-            <span class="toggle"></span>
-            <span><strong>Stability Mode</strong><small>Back camera, 1080p, 30 FPS</small></span>
-          </label>
           <label class="toggle-card">
             <input id="always-on-top" type="checkbox" />
             <span class="toggle"></span>
