@@ -1,0 +1,103 @@
+;
+; PhoneCamCameraDriver.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Camera
+ClassGuid={ca3e7ab9-b4c3-4ae6-8251-579ef933890f}
+PnpLockdown=1
+Provider=%ProviderString%
+DriverVer=05/18/2026,0.20.0.0
+CatalogFile=PhoneCamCameraDriver.cat
+
+[DestinationDirs]
+UMDriverCopy=13
+CustomCaptureSourceCopy=13
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+PhoneCamCameraDriver.dll = 1,,
+PhoneCamVirtualCamera.dll = 1,,
+
+;*****************************************
+; SimpleMFSource  Install Section
+;*****************************************
+
+[Manufacturer]
+%StdMfg%=Standard,NT$ARCH$.10.0...17134
+
+[Standard.NT$ARCH$.10.0...17134]
+%PhoneCamVirtualCamera.DeviceDesc%=PhoneCamVirtualCamera, root\PhoneCamVirtualCamera
+
+;---------------- copy files
+
+[PhoneCamVirtualCamera.NT]
+Include=WUDFRD.inf
+Needs=WUDFRD.NT
+CopyFiles=UMDriverCopy, CustomCaptureSourceCopy
+AddReg = CustomCaptureSource.ComRegistration
+
+;---------------------------------------------------------------
+
+[PhoneCamVirtualCamera.NT.Interfaces]
+AddInterface = %KSCATEGORY_VIDEO_CAMERA%, %CustomCaptureSource.ReferenceString%, CustomCaptureSourceInterface
+AddInterface = %KSCATEGORY_VIDEO%, %CustomCaptureSource.ReferenceString%, CustomCaptureSourceInterface
+AddInterface = %KSCATEGORY_CAPTURE%, %CustomCaptureSource.ReferenceString%, CustomCaptureSourceInterface
+
+[CustomCaptureSourceInterface]
+AddReg = CustomCaptureSourceInterface.AddReg, CustomCaptureSource.ComRegistration
+
+[CustomCaptureSourceInterface.AddReg]
+HKR,,CLSID,,%ProxyVCap.CLSID%
+HKR,,CustomCaptureSourceClsid,,%CustomCaptureSource.CLSID%
+HKR,,FriendlyName,,%CustomCaptureSource.Desc%
+
+[CustomCaptureSource.ComRegistration]
+HKCR,CLSID\%CustomCaptureSource.CLSID%,,,%CustomCaptureSource.Desc%
+HKCR,CLSID\%CustomCaptureSource.CLSID%\InprocServer32,,%REG_EXPAND_SZ%,"%13%\PhoneCamVirtualCamera.dll"
+HKCR,CLSID\%CustomCaptureSource.CLSID%\InprocServer32,ThreadingModel,,Both
+
+[UMDriverCopy]
+PhoneCamCameraDriver.dll
+
+[CustomCaptureSourceCopy]
+PhoneCamVirtualCamera.dll
+
+;-------------- Service installation
+[PhoneCamVirtualCamera.NT.Services]
+Include=WUDFRD.inf
+Needs=WUDFRD.NT.Services
+
+;-------------- HW installation
+[PhoneCamVirtualCamera.NT.HW]
+Include=WUDFRD.inf
+Needs=WUDFRD.NT.HW
+
+;-------------- WDF specific section -------------
+[PhoneCamVirtualCamera.NT.Wdf]
+UmdfService=PhoneCamVirtualCamera, PhoneCamVirtualCamera_Install
+UmdfServiceOrder=PhoneCamVirtualCamera
+UmdfKernelModeClientPolicy=AllowKernelModeClients ; Required to allow ksthunk.sys to load above us as a Camera driver.
+
+[PhoneCamVirtualCamera_Install]
+UmdfLibraryVersion=$UMDFVERSION$
+ServiceBinary=%13%\PhoneCamCameraDriver.dll
+
+[Strings]
+ProviderString = "PhoneCam"
+StdMfg = "(Standard system devices)"
+DiskId1 = "PhoneCam Virtual Camera Disk #1"
+PhoneCamVirtualCamera.DeviceDesc = "PhoneCam"
+KSCATEGORY_VIDEO_CAMERA  = "{E5323777-F976-4f5b-9B55-B94699C46E44}"
+KSCATEGORY_CAPTURE="{65E8773D-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_VIDEO="{6994AD05-93EF-11D0-A3CC-00A0C9223196}"
+ProxyVCap.CLSID="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+CustomCaptureSource.Desc = "PhoneCam"
+CustomCaptureSource.ReferenceString = "PhoneCamCameraSource"
+CustomCaptureSource.CLSID = "{E807E3F3-AC55-490B-8371-56BC0C464978}"
+REG_EXPAND_SZ = 0x00020000
+
+
