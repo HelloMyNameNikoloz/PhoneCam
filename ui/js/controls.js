@@ -3,7 +3,7 @@ window.PhoneCamControls = {
     document.querySelector("#start-camera").addEventListener("click", () => this.startCamera());
     document.querySelector("#stop-camera").addEventListener("click", () => this.stopCamera());
     document.querySelector("#refresh-devices").addEventListener("click", () => this.refreshDevices());
-    document.addEventListener("click", (event) => this.handleDynamicClick(event));
+    document.addEventListener("click", (event) => this.handleClick(event));
 
     ["device-select", "camera-facing", "resolution", "fps", "auto-start", "always-on-top", "stability-mode"]
       .forEach((id) => document.querySelector(`#${id}`).addEventListener("change", () => this.saveSettings()));
@@ -20,6 +20,11 @@ window.PhoneCamControls = {
       alwaysOnTop: document.querySelector("#always-on-top").checked,
       stabilityMode: stability,
     };
+  },
+
+  setPanel(panel) {
+    window.PhoneCamState.merge({ activePanel: panel });
+    window.PhoneCamRender.render();
   },
 
   async saveSettings() {
@@ -46,14 +51,10 @@ window.PhoneCamControls = {
     window.PhoneCamRender.render();
   },
 
-  handleDynamicClick(event) {
-    if (!event.target.closest("#copy-obs")) return;
-    const text = [
-      "Open OBS.",
-      "Add a Window Capture source, not Video Capture Device.",
-      "Select PhoneCam Preview.",
-      "Use your external microphone as a separate audio source.",
-    ].join("\n");
-    navigator.clipboard.writeText(text).catch(() => {});
+  handleClick(event) {
+    const tab = event.target.closest(".mode-tab");
+    if (tab) this.setPanel(tab.dataset.panel);
+    if (event.target.closest("#viewer-start")) this.startCamera();
+    if (event.target.closest("#viewer-stop")) this.stopCamera();
   },
 };

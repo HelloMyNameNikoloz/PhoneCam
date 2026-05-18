@@ -1,8 +1,8 @@
 # PhoneCam
 
-PhoneCam turns an Android phone into a clean, low-latency USB camera source for OBS. Version 1 uses ADB and scrcpy camera mode internally. It does not install or emulate a virtual webcam driver.
+PhoneCam turns an Android phone into a clean, low-latency USB camera preview using ADB and scrcpy camera mode. Version 1 does not install a virtual webcam driver.
 
-When PhoneCam is open it stays available in the Windows system tray, starts the camera automatically when an authorized phone is connected, and keeps the `PhoneCam Preview` window available for OBS Window Capture.
+When PhoneCam is open it stays available in the Windows system tray, starts the camera automatically when an authorized phone is connected, and keeps the `PhoneCam Preview` window available until you quit manually from the tray.
 
 ## Requirements
 
@@ -30,15 +30,6 @@ python app/main.py
 3. Connect phone via USB.
 4. Accept the RSA debugging prompt on the phone.
 
-## OBS Setup
-
-1. Open OBS.
-2. Add a Window Capture source.
-3. Select `PhoneCam Preview`.
-4. Use a separate microphone source, such as Blue Yeti.
-
-PhoneCam will not appear under OBS Video Capture Device in version 1. That list only contains physical cameras and installed virtual webcam drivers. A future version would need a signed Windows virtual camera driver or DirectShow filter to appear there as `PhoneCam`.
-
 ## Build PhoneCam.exe
 
 The build script bundles `ui/`, `assets/`, and `bin/` into a windowed PyInstaller app:
@@ -64,4 +55,4 @@ dist/PhoneCam.exe
 
 ## Notes
 
-PhoneCam uses USB only in version 1. Phone audio is disabled by default so OBS can use a dedicated microphone source.
+PhoneCam uses USB only in version 1. Phone audio is disabled by default.

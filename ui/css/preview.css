@@ -1,72 +1,91 @@
-.workspace-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.workspace-grid .card-grid {
-  margin-bottom: 0;
-}
-
-.preview-card {
-  display: grid;
-  align-content: start;
-  gap: 16px;
-  min-height: 360px;
-  padding: 18px;
-  border: 1px solid rgba(48, 50, 61, 0.82);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.preview-frame {
+.viewer {
   position: relative;
   display: grid;
   place-items: center;
-  aspect-ratio: 9 / 16;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 22px;
-  background: #090a0d;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #2b2c34 0%, #25212a 100%);
+  box-shadow: var(--shadow);
 }
 
-.preview-frame::before {
+.viewer::before {
   position: absolute;
-  inset: 18px;
+  inset: 24px;
+  border: 1px solid rgba(244, 244, 245, 0.06);
+  border-radius: 18px;
+  content: "";
+  pointer-events: none;
+}
+
+.viewer-card {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  width: min(820px, 78%);
+  aspect-ratio: 16 / 9;
+  padding: 32px;
   border: 1px solid rgba(244, 244, 245, 0.08);
   border-radius: 18px;
+  background: #858683;
+}
+
+.viewer-card.running {
+  background: #15161c;
+}
+
+.camera-glyph {
+  position: relative;
+  width: 104px;
+  height: 70px;
+  border-radius: 22px;
+  background: rgba(244, 244, 245, 0.74);
+}
+
+.camera-glyph::before {
+  position: absolute;
+  left: 34px;
+  top: 20px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #777975;
   content: "";
 }
 
-.preview-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--muted);
-  box-shadow: 0 0 0 7px rgba(113, 113, 122, 0.12);
+.camera-glyph::after {
+  position: absolute;
+  right: -38px;
+  top: 9px;
+  width: 30px;
+  height: 52px;
+  border-radius: 8px;
+  background: rgba(244, 244, 245, 0.74);
+  content: "";
 }
 
-.preview-card.running .preview-dot {
-  background: var(--success);
-  box-shadow: 0 0 0 7px rgba(34, 197, 94, 0.14);
+.viewer-text {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
 }
 
-.preview-card p {
-  font-size: 13px;
+.viewer-actions {
+  display: flex;
+  gap: 10px;
 }
 
-@media (max-width: 1120px) {
-  .workspace-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .preview-card {
-    min-height: 0;
-  }
-
-  .preview-frame {
-    aspect-ratio: 16 / 9;
-  }
+.stage-toast {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  max-width: 460px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(15, 16, 20, 0.82);
+  color: var(--text-soft);
+  backdrop-filter: blur(14px);
 }

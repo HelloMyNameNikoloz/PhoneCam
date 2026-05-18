@@ -12,6 +12,7 @@ window.PhoneCamState = {
     },
     cameraRunning: false,
     status: "waiting",
+    activePanel: "camera",
     error: null,
     missingAdb: false,
     missingScrcpy: false,

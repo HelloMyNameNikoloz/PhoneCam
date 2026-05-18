@@ -2,27 +2,36 @@ window.PhoneCamRender = {
   render() {
     const state = window.PhoneCamState.data;
     this.statusPill(state);
+    this.panels(state);
     this.deviceOptions(state);
     this.formValues(state.settings);
-    this.cards(state);
-    this.preview(state);
-    this.emptyState(state);
+    this.sourceCard(state);
+    this.setupMessage(state);
+    this.stage(state);
     this.logs(state.logs);
   },
 
   statusPill(state) {
     const pill = document.querySelector("#status-pill");
-    const labels = { waiting: "Waiting", connected: "Connected", running: "Running", error: "Error" };
+    const labels = { waiting: "Waiting", connected: "Connected", running: "Live", error: "Needs attention" };
     pill.className = `status-pill ${state.status}`;
     pill.textContent = labels[state.status] || "Waiting";
+  },
+
+  panels(state) {
+    document.querySelectorAll(".mode-tab").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.panel === state.activePanel);
+    });
+    document.querySelectorAll(".side-panel").forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.panelView === state.activePanel);
+    });
   },
 
   deviceOptions(state) {
     const select = document.querySelector("#device-select");
     const selected = state.settings.selectedDeviceId || "";
     select.innerHTML = "";
-    const fallback = new Option("Auto select device", "");
-    select.appendChild(fallback);
+    select.appendChild(new Option("Auto select", ""));
     state.devices.forEach((device) => {
       const label = `${device.label} - ${device.id} (${device.status})`;
       select.appendChild(new Option(label, device.id));
@@ -39,77 +48,72 @@ window.PhoneCamRender = {
     document.querySelector("#stability-mode").checked = Boolean(settings.stabilityMode);
   },
 
-  cards(state) {
-    document.querySelector("#device-card").innerHTML = this.deviceCard(state);
-    document.querySelector("#camera-card").innerHTML = this.cameraCard(state);
-    document.querySelector("#obs-card").innerHTML = this.obsCard(state);
-  },
-
-  deviceCard(state) {
+  sourceCard(state) {
     const device = this.selectedDevice(state);
     const status = device ? device.status : "No device";
-    const detail = this.deviceMessage(state, device);
     const badge = device && device.status === "device" ? "success" : device ? "warning" : "error";
-    return `<div class="card-body">
-      <h3>Device</h3>
-      <span class="badge ${badge}">${status}</span>
-      <p>${detail}</p>
-      <div class="metric"><span>Selected</span><strong>${device ? device.id : "Auto"}</strong></div>
+    document.querySelector("#source-card").innerHTML = `<div class="source-summary">
+      <div class="source-top">
+        <div>
+          <h2>${device ? device.label : "No phone connected"}</h2>
+          <div class="source-id">${device ? device.id : "Waiting for USB"}</div>
+        </div>
+        <span class="badge ${badge}">${status}</span>
+      </div>
+      <p>${this.deviceMessage(state, device)}</p>
     </div>`;
   },
 
-  cameraCard(state) {
-    const running = state.cameraRunning;
+  setupMessage(state) {
+    const device = this.selectedDevice(state);
+    document.querySelector("#setup-message").textContent = this.deviceMessage(state, device);
+  },
+
+  stage(state) {
     const settings = state.settings;
-    return `<div class="card-body">
-      <h3>Camera</h3>
-      <span class="badge ${running ? "success" : "warning"}">${running ? "Running" : "Stopped"}</span>
-      <p>${running ? "PhoneCam Preview is open and ready for capture." : "Start the camera when your phone is connected."}</p>
-      <div class="metric"><span>Mode</span><strong>${settings.cameraFacing} / ${settings.resolution} / ${settings.fps} FPS</strong></div>
-    </div>`;
-  },
-
-  obsCard(state) {
-    const ready = state.cameraRunning;
-    return `<div class="card-body">
-      <h3>${ready ? "OBS Ready" : "OBS"}</h3>
-      <span class="badge ${ready ? "success" : ""}">${ready ? "Preview active" : "Window Capture"}</span>
-      <p>${ready ? "Preview active - capture 'PhoneCam Preview' in OBS." : "This build appears in OBS Window Capture, not Video Capture Device. Add a Window Capture source and select 'PhoneCam Preview'."}</p>
-      <button id="copy-obs" class="button ghost" type="button">Copy OBS setup steps</button>
-    </div>`;
-  },
-
-  preview(state) {
-    const panel = document.querySelector("#preview-card");
     const running = state.cameraRunning;
-    panel.className = `preview-card ${running ? "running" : ""}`;
-    panel.innerHTML = `<div>
-      <h2>Preview</h2>
-      <p>${running ? "PhoneCam Preview is running automatically." : "Connect and authorize a phone. Auto Start will open PhoneCam Preview."}</p>
+    const subtitle = running ? "PhoneCam Preview is running automatically." : this.previewHint(state);
+    document.querySelector("#stage-subtitle").textContent = subtitle;
+    document.querySelector("#stage-metrics").innerHTML = [
+      `<span class="badge accent">${settings.resolution}</span>`,
+      `<span class="badge accent">${settings.fps} FPS</span>`,
+      `<span class="badge accent">${settings.cameraFacing}</span>`,
+    ].join("");
+
+    document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">
+      <div class="camera-glyph" aria-hidden="true"></div>
+      <div class="viewer-text">
+        <h2>${running ? "Preview active" : "Ready when your phone is"}</h2>
+        <p>${running ? "Use the PhoneCam Preview window for capture." : "Connect and authorize a phone, or press Start after selecting a device."}</p>
+      </div>
+      <div class="viewer-actions">
+        <button class="button primary" id="viewer-start" type="button">${running ? "Restart" : "Start Camera"}</button>
+        <button class="button" id="viewer-stop" type="button">Stop</button>
+      </div>
     </div>
-    <div class="preview-frame" aria-label="Preview status">
-      <span class="preview-dot"></span>
-    </div>
-    <span class="badge ${running ? "success" : "warning"}">${running ? "Capture PhoneCam Preview" : "Waiting for camera"}</span>`;
+    <div class="stage-toast">${this.deviceMessage(state, this.selectedDevice(state))}</div>`;
+  },
+
+  previewHint(state) {
+    if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
+    if (state.missingScrcpy) return "scrcpy.exe is missing from the bundled bin folder.";
+    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Camera is ready to start.";
+    return "Waiting for an authorized Android phone.";
   },
 
   selectedDevice(state) {
     const selected = state.settings.selectedDeviceId;
-    return state.devices.find((d) => d.id === selected) || state.devices[0] || null;
+    return state.devices.find((device) => device.id === selected) || state.devices[0] || null;
   },
 
   deviceMessage(state, device) {
     if (state.missingAdb) return "Bundled adb.exe was not found in the bin folder.";
     if (state.missingScrcpy) return "Bundled scrcpy.exe was not found in the bin folder.";
     if (state.error) return state.error;
-    if (!device) return "Connect your Android phone with USB.";
+    if (!device) return "Connect your Android phone with USB and accept the debugging prompt.";
     if (device.status === "unauthorized") return "Unlock your phone and accept the USB debugging prompt.";
     if (device.status === "offline") return "Reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.";
     return "Authorized Android device connected.";
-  },
-
-  emptyState(state) {
-    document.querySelector("#empty-state").classList.toggle("hidden", state.devices.length > 0 || state.missingAdb);
   },
 
   logs(logs) {

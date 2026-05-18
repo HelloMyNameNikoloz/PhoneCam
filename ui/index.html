@@ -11,82 +11,42 @@
     <link rel="stylesheet" href="./css/utilities.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand">
-          <img class="brand-mark" src="../assets/logo.png" alt="" />
-          <div>
-            <strong>PhoneCam</strong>
-            <span>USB Android Camera</span>
-          </div>
+    <div class="studio-shell">
+      <header class="titlebar">
+        <div class="app-brand">
+          <img src="../assets/logo.png" alt="" />
+          <strong>PhoneCam</strong>
+          <span>USB Android Camera</span>
         </div>
-        <nav class="nav-list" aria-label="Main navigation">
-          <a class="nav-item active" href="#camera">Camera</a>
-          <a class="nav-item" href="#setup">Setup</a>
-          <a class="nav-item" href="#logs">Logs</a>
-          <a class="nav-item" href="#about">About</a>
-        </nav>
-      </aside>
-
-      <main class="main">
-        <header class="main-header">
-          <div>
-            <h1>Camera</h1>
-            <p>Use your Android phone as a clean wired camera source for OBS.</p>
-          </div>
+        <div class="toolbar">
+          <button id="refresh-devices" class="tool-button" type="button">Refresh</button>
+          <button id="stop-camera" class="tool-button" type="button">Stop</button>
+          <button id="start-camera" class="tool-button primary" type="button">Start</button>
           <span id="status-pill" class="status-pill waiting">Waiting</span>
-        </header>
+        </div>
+      </header>
 
-        <section id="empty-state" class="empty-state hidden">
-          <div class="empty-icon" aria-hidden="true"></div>
-          <h2>Connect your Android phone</h2>
-          <p>Enable USB debugging, connect by cable, and accept the prompt.</p>
-          <ol>
-            <li>Enable Developer Options</li>
-            <li>Enable USB Debugging</li>
-            <li>Connect phone via USB</li>
-            <li>Accept the debugging prompt</li>
-          </ol>
-        </section>
+      <aside class="inspector">
+        <div class="source-card" id="source-card"></div>
 
-        <section class="workspace-grid">
-          <div>
-            <section id="camera" class="card-grid">
-              <article class="card" id="device-card"></article>
-              <article class="card" id="camera-card"></article>
-              <article class="card" id="obs-card"></article>
-            </section>
-          </div>
-          <aside class="preview-card" id="preview-card"></aside>
-        </section>
+        <nav class="mode-tabs" aria-label="PhoneCam sections">
+          <button class="mode-tab active" type="button" data-panel="camera">Camera</button>
+          <button class="mode-tab" type="button" data-panel="setup">Setup</button>
+          <button class="mode-tab" type="button" data-panel="logs">Logs</button>
+          <button class="mode-tab" type="button" data-panel="about">About</button>
+        </nav>
 
-        <section class="panel settings-panel">
-          <div class="section-heading">
-            <div>
-              <h2>Settings</h2>
-              <p>Defaults are tuned for stable 1080p recording.</p>
-            </div>
-          </div>
-
-          <div class="settings-grid">
-            <label class="field">
-              <span>Device</span>
-              <select id="device-select"></select>
-            </label>
+        <section class="side-panel active" data-panel-view="camera">
+          <label class="field">
+            <span>Device</span>
+            <select id="device-select"></select>
+          </label>
+          <div class="control-grid">
             <label class="field">
               <span>Camera</span>
               <select id="camera-facing">
                 <option value="back">Back</option>
                 <option value="front">Front</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Resolution</span>
-              <select id="resolution">
-                <option>1280x720</option>
-                <option>1920x1080</option>
-                <option>2560x1440</option>
-                <option>3840x2160</option>
               </select>
             </label>
             <label class="field">
@@ -98,41 +58,65 @@
               </select>
             </label>
           </div>
-
-          <div class="toggle-row">
-            <label class="toggle-card">
-              <input id="auto-start" type="checkbox" />
-              <span class="toggle"></span>
-              <span><strong>Auto Start</strong><small>Start camera whenever a phone is ready</small></span>
-            </label>
-            <label class="toggle-card">
-              <input id="always-on-top" type="checkbox" />
-              <span class="toggle"></span>
-              <span><strong>Always On Top Preview</strong><small>Keep preview above other windows</small></span>
-            </label>
-            <label class="toggle-card">
-              <input id="stability-mode" type="checkbox" />
-              <span class="toggle"></span>
-              <span><strong>Stability Mode</strong><small>Force back camera at 1080p30</small></span>
-            </label>
-          </div>
-
-          <div class="action-row">
-            <button id="start-camera" class="button primary">Start Camera</button>
-            <button id="stop-camera" class="button">Stop Camera</button>
-            <button id="refresh-devices" class="button ghost">Refresh Devices</button>
-          </div>
+          <label class="field">
+            <span>Resolution</span>
+            <select id="resolution">
+              <option>1280x720</option>
+              <option>1920x1080</option>
+              <option>2560x1440</option>
+              <option>3840x2160</option>
+            </select>
+          </label>
+          <div class="divider"></div>
+          <label class="toggle-card">
+            <input id="auto-start" type="checkbox" />
+            <span class="toggle"></span>
+            <span><strong>Auto Start</strong><small>Start when a phone is ready</small></span>
+          </label>
+          <label class="toggle-card">
+            <input id="stability-mode" type="checkbox" />
+            <span class="toggle"></span>
+            <span><strong>Stability Mode</strong><small>Back camera, 1080p, 30 FPS</small></span>
+          </label>
+          <label class="toggle-card">
+            <input id="always-on-top" type="checkbox" />
+            <span class="toggle"></span>
+            <span><strong>Always On Top</strong><small>Keep preview visible</small></span>
+          </label>
         </section>
 
-        <section id="logs" class="panel">
-          <div class="section-heading">
-            <div>
-              <h2>Logs</h2>
-              <p>Compact backend activity and device state changes.</p>
-            </div>
-          </div>
+        <section class="side-panel" data-panel-view="setup">
+          <h2>Connect phone</h2>
+          <ol class="setup-list">
+            <li>Enable Developer Options.</li>
+            <li>Enable USB Debugging.</li>
+            <li>Connect with a USB data cable.</li>
+            <li>Accept the debugging prompt.</li>
+          </ol>
+          <div id="setup-message" class="notice"></div>
+        </section>
+
+        <section class="side-panel" data-panel-view="logs">
           <div id="log-panel" class="log-panel" aria-live="polite"></div>
         </section>
+
+        <section class="side-panel" data-panel-view="about">
+          <h2>PhoneCam</h2>
+          <p>PhoneCam uses ADB and scrcpy camera mode to create a clean wired preview window from your Android phone.</p>
+          <p class="muted">Close the window to keep it running in the system tray. Quit from the tray menu when finished.</p>
+        </section>
+      </aside>
+
+      <main class="preview-stage" id="preview-stage">
+        <div class="stage-header">
+          <div>
+            <h1>Camera Preview</h1>
+            <p id="stage-subtitle">Waiting for an Android phone.</p>
+          </div>
+          <div class="stage-metrics" id="stage-metrics"></div>
+        </div>
+
+        <section class="viewer" id="preview-card" aria-label="PhoneCam preview status"></section>
       </main>
     </div>
 
