@@ -18,5 +18,14 @@ Assert-TestSigningEnabled
 
 $devgenPath = Find-WdkTool -Name "devgen.exe"
 
+Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.FriendlyName -eq "PhoneCam" -and $_.InstanceId -like "ROOT\DEVGEN\*"
+    } |
+    ForEach-Object {
+        Write-Host "Removing existing PhoneCam instance: $($_.InstanceId)"
+        & pnputil /remove-device $_.InstanceId
+    }
+
 & $devgenPath /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
 & pnputil /add-driver $inf /install

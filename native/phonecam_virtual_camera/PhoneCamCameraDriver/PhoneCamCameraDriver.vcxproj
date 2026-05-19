@@ -60,7 +60,7 @@
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <WDKContentRoot Condition="'$(WDKContentRoot)' == ''">$(WindowsSdkDir)</WDKContentRoot>
     <WDKBuildFolder Condition="'$(WDKBuildFolder)' == ''">10.0.26100.0</WDKBuildFolder>
-    <PhoneCamWdfVersion Condition="'$(PhoneCamWdfVersion)' == ''">2.35</PhoneCamWdfVersion>
+    <PhoneCamWdfVersion Condition="'$(PhoneCamWdfVersion)' == ''">2.33</PhoneCamWdfVersion>
     <DDKPlatform Condition="'$(DDKPlatform)' == '' and '$(Platform)' == 'x64'">x64</DDKPlatform>
     <DDKPlatform Condition="'$(DDKPlatform)' == '' and '$(Platform)' == 'ARM64'">arm64</DDKPlatform>
   </PropertyGroup>

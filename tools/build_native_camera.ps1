@@ -41,10 +41,12 @@ function Get-PreferredKitVersion($kitRoot) {
 }
 
 function Get-WdfVersion($kitRoot, $platform) {
+    $preferred = @("2.33", "2.31", "2.27")
     $versions = Get-ChildItem (Join-Path $kitRoot "Include\wdf\umdf") -Directory |
         Sort-Object Name -Descending
 
-    foreach ($version in $versions.Name) {
+    foreach ($version in $preferred + $versions.Name) {
+        if (-not $version) { continue }
         $header = Join-Path $kitRoot "Include\wdf\umdf\$version\wdf.h"
         $library = Join-Path $kitRoot "Lib\wdf\umdf\$platform\$version\WdfDriverStubUm.lib"
         if ((Test-Path $header) -and (Test-Path $library)) {
