@@ -69,6 +69,12 @@ HRESULT SimpleFrameGenerator::_CreateRGB32Frame(
     _In_ ULONG rgbMask )
 {
     RETURN_HR_IF_NULL(E_INVALIDARG, pBuf);
+    bool copied = false;
+    RETURN_IF_FAILED(m_bridge.TryCopyBgraFrame(pBuf, len, pitch, width, height, &copied));
+    if (copied)
+    {
+        return S_OK;
+    }
 
     LONGLONG curSysTimeInS = MFGetSystemTime() / (MFTIME)10000000;
     int offset = curSysTimeInS % height;

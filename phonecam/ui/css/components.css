@@ -32,6 +32,13 @@
   background: var(--accent-hover);
 }
 
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .mode-tab {
   border-color: transparent;
   background: transparent;

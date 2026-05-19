@@ -65,25 +65,20 @@
             </select>
           </label>
           <div class="divider"></div>
-          <label class="toggle-card">
-            <input id="always-on-top" type="checkbox" />
-            <span class="toggle"></span>
-            <span><strong>Always On Top</strong><small>Keep preview visible</small></span>
-          </label>
-          <label class="toggle-card">
-            <input id="hide-preview" type="checkbox" />
-            <span class="toggle"></span>
-            <span><strong>Hide Preview Window</strong><small>Move preview off-screen for OBS capture</small></span>
-          </label>
+          <div class="action-row">
+            <button id="start-camera" class="button primary" type="button">Start Camera</button>
+            <button id="stop-camera" class="button" type="button">Stop</button>
+          </div>
         </section>
 
         <section class="side-panel" data-panel-view="setup">
           <h2>Connect phone</h2>
           <ol class="setup-list">
-            <li>Enable Developer Options.</li>
-            <li>Enable USB Debugging.</li>
-            <li>Connect the phone by USB.</li>
-            <li>Accept the debugging prompt.</li>
+            <li>Install the native PhoneCam camera package.</li>
+            <li>Enable USB Debugging and connect the phone.</li>
+            <li>Accept the Android debugging prompt.</li>
+            <li>Open the PhoneCam Android companion.</li>
+            <li>Select PhoneCam in the target app camera dropdown.</li>
           </ol>
           <div id="setup-message" class="notice"></div>
         </section>
@@ -94,7 +89,7 @@
 
         <section class="side-panel" data-panel-view="about">
           <h2>PhoneCam</h2>
-          <p>PhoneCam keeps a USB Android camera preview running through scrcpy camera mode.</p>
+          <p>PhoneCam bridges Android camera frames into a registered Windows camera device.</p>
           <p class="muted">Close the PhoneCam control window to keep it running in the system tray. Quit from the tray menu when finished.</p>
         </section>
       </aside>

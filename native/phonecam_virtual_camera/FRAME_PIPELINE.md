@@ -2,13 +2,13 @@
 
 The registered camera and the Python control app need a frame handoff that does not depend on a visible scrcpy window.
 
-Planned contract:
+Implemented contract:
 
-- Producer: PhoneCam desktop app or a helper process started by it.
+- Producer: PhoneCam desktop app.
 - Consumer: `PhoneCamVirtualCamera.dll`.
-- Transport: named shared memory plus an event pair.
-- Pixel format: NV12 first, YUY2 fallback for legacy capture apps.
-- Default mode: 1920x1080 at 30 FPS.
+- Transport: `C:\ProgramData\PhoneCam\framebuffer.bin`.
+- Pixel format: BGRA in the handoff file; native source converts to NV12 when requested.
+- Default virtual camera mode: 1920x1080 at 30 FPS.
 
 Shared memory header:
 
@@ -18,12 +18,10 @@ struct PhoneCamFrameHeader {
     uint32_t version;
     uint32_t width;
     uint32_t height;
-    uint32_t fourcc;
     uint32_t stride;
-    uint64_t frame_index;
-    uint64_t timestamp_qpc;
+    uint32_t format;
     uint32_t payload_size;
+    uint32_t sequence;
+    uint64_t timestamp_qpc;
 };
 ```
-
-The current native source still uses the Microsoft sample generator. Replacing that generator with this consumer is the next implementation step.

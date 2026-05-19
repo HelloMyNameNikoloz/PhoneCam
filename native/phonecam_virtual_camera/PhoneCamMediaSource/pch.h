@@ -20,13 +20,17 @@
 #include <nserror.h>
 #include <winmeta.h>
 #include <d3d9types.h>
+#include <vector>
+#include <string>
 
 #define RESULT_DIAGNOSTICS_LEVEL 4 // include function name
 
 #include <wil\cppwinrt.h> // must be before the first C++ WinRT header, ref:https://github.com/Microsoft/wil/wiki/Error-handling-helpers
 #include <wil\result.h>
 #include <wil\com.h>
+#include <wil\resource.h>
 
+#include "PhoneCamFrameBridge.h"
 #include "SimpleFrameGenerator.h"
 #include "SimpleMediaStream.h"
 #include "PhoneCamVirtualCamera.h"

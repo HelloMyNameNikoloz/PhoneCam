@@ -105,7 +105,7 @@
       <AdditionalIncludeDirectories>..\..\vendor\wil\include;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib;Shell32.lib</AdditionalDependencies>
       <ModuleDefinitionFile>$(SolutionDir)PhoneCamMediaSource\module.def</ModuleDefinitionFile>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -125,7 +125,7 @@
       <AdditionalIncludeDirectories>..\..\vendor\wil\include;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib;Shell32.lib</AdditionalDependencies>
       <ModuleDefinitionFile>$(SolutionDir)PhoneCamMediaSource\module.def</ModuleDefinitionFile>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -149,7 +149,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib;Shell32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>$(SolutionDir)PhoneCamMediaSource\module.def</ModuleDefinitionFile>
     </Link>
@@ -173,7 +173,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);mfplat.lib;Mfsensorgroup.lib;OneCoreUAP.lib;Shell32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>$(SolutionDir)PhoneCamMediaSource\module.def</ModuleDefinitionFile>
     </Link>
@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllMain.cpp" />
+    <ClCompile Include="PhoneCamFrameBridge.cpp" />
     <ClCompile Include="SimpleFrameGenerator.cpp" />
     <ClCompile Include="PhoneCamVirtualCamera.cpp" />
     <ClCompile Include="PhoneCamVirtualCameraActivate.cpp" />
@@ -191,6 +192,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleFrameGenerator.h" />
+    <ClInclude Include="PhoneCamFrameBridge.h" />
     <ClInclude Include="PhoneCamVirtualCamera.h" />
     <ClInclude Include="PhoneCamVirtualCameraActivate.h" />
     <ClInclude Include="SimpleMediaStream.h" />

@@ -1,7 +1,7 @@
 window.PhoneCamControls = {
   bind() {
     document.addEventListener("click", (event) => this.handleClick(event));
-    ["device-select", "camera-facing", "resolution", "fps", "always-on-top", "hide-preview"]
+    ["device-select", "camera-facing", "resolution", "fps"]
       .forEach((id) => document.querySelector(`#${id}`).addEventListener("change", () => this.saveSettings()));
   },
 
@@ -11,8 +11,6 @@ window.PhoneCamControls = {
       cameraFacing: document.querySelector("#camera-facing").value,
       resolution: document.querySelector("#resolution").value,
       fps: Number(document.querySelector("#fps").value),
-      alwaysOnTop: document.querySelector("#always-on-top").checked,
-      hidePreview: document.querySelector("#hide-preview").checked,
     };
   },
 
@@ -38,5 +36,21 @@ window.PhoneCamControls = {
   handleClick(event) {
     const tab = event.target.closest(".mode-tab");
     if (tab) this.setPanel(tab.dataset.panel);
+    const start = event.target.closest("#start-camera");
+    if (start) this.startCamera();
+    const stop = event.target.closest("#stop-camera");
+    if (stop) this.stopCamera();
+  },
+
+  async startCamera() {
+    const status = await window.PhoneCamApi.startCamera(this.collectSettings());
+    window.PhoneCamState.merge(status);
+    window.PhoneCamRender.render();
+  },
+
+  async stopCamera() {
+    const status = await window.PhoneCamApi.stopCamera();
+    window.PhoneCamState.merge(status);
+    window.PhoneCamRender.render();
   },
 };

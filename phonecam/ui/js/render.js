@@ -43,8 +43,6 @@ window.PhoneCamRender = {
     document.querySelector("#camera-facing").value = settings.cameraFacing;
     document.querySelector("#resolution").value = settings.resolution;
     document.querySelector("#fps").value = String(settings.fps);
-    document.querySelector("#always-on-top").checked = Boolean(settings.alwaysOnTop);
-    document.querySelector("#hide-preview").checked = Boolean(settings.hidePreview);
   },
 
   sourceCard(state) {
@@ -71,7 +69,7 @@ window.PhoneCamRender = {
   stage(state) {
     const settings = state.settings;
     const running = state.cameraRunning;
-    const subtitle = running ? "PhoneCam Preview is running automatically." : this.previewHint(state);
+    const subtitle = running ? "Android frames are feeding the PhoneCam virtual camera." : this.previewHint(state);
     document.querySelector("#stage-subtitle").textContent = subtitle;
     document.querySelector("#stage-metrics").innerHTML = [
       `<span class="badge accent">${this.resolutionLabel(settings.resolution)}</span>`,
@@ -82,18 +80,20 @@ window.PhoneCamRender = {
     const content = running
       ? `<div class="camera-glyph" aria-hidden="true"></div>
         <div class="viewer-text">
-          <h2>Preview active</h2>
-          <p>${settings.hidePreview ? "The preview window is off-screen and ready for OBS." : "Capture 'PhoneCam Preview' in OBS Window Capture."}</p>
+          <h2>Virtual camera feed active</h2>
+          <p>Select PhoneCam in OBS, browsers, Discord, Zoom, or Teams.</p>
         </div>`
       : `<div class="camera-glyph" aria-hidden="true"></div>
         <div class="viewer-text">
           <h2>Waiting for phone</h2>
-          <p>Connect and authorize an Android phone by USB.</p>
+          <p>Connect USB, authorize ADB, then open the PhoneCam Android companion.</p>
         </div>`;
     document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">${content}</div>
     <div class="stage-toast">
-      <strong>OBS Window Capture</strong>
-      <span>Select 'PhoneCam Preview'. Enable Hide Preview Window if the preview should stay out of the way.</span>
+      <strong>Virtual Camera</strong>
+      <span>${this.virtualCameraMessage(state)}</span>
+      <strong class="toast-line">Frame Bridge</strong>
+      <span>${this.frameBridgeMessage(state)}</span>
     </div>`;
   },
 
@@ -109,9 +109,9 @@ window.PhoneCamRender = {
 
   previewHint(state) {
     if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
-    if (state.missingScrcpy) return "scrcpy.exe is missing from the bundled bin folder.";
-    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Starting camera automatically.";
-    return "Waiting for an authorized Android phone.";
+    if (!state.virtualCameraInstalled) return "PhoneCam virtual camera is not installed yet.";
+    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Waiting for Android companion frames.";
+    return "Waiting for an authorized Android phone over USB.";
   },
 
   selectedDevice(state) {
@@ -121,12 +121,24 @@ window.PhoneCamRender = {
 
   deviceMessage(state, device) {
     if (state.missingAdb) return "Bundled adb.exe was not found in the bin folder.";
-    if (state.missingScrcpy) return "Bundled scrcpy.exe was not found in the bin folder.";
     if (state.error) return state.error;
     if (!device) return "Connect your Android phone with USB and accept the debugging prompt.";
     if (device.status === "unauthorized") return "Unlock your phone and accept the USB debugging prompt.";
     if (device.status === "offline") return "Reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.";
     return "Authorized Android device connected.";
+  },
+
+  virtualCameraMessage(state) {
+    return state.virtualCameraInstalled
+      ? "PhoneCam is registered as a Windows camera device."
+      : "Run the native build, sign, and install scripts so apps can select PhoneCam.";
+  },
+
+  frameBridgeMessage(state) {
+    const receiver = state.frameReceiver || {};
+    if (!receiver.listening) return "Frame receiver is stopped.";
+    if (receiver.framesReceived > 0) return `Receiving ${receiver.lastSize || "video"} frames from Android.`;
+    return "USB tunnel is ready on port 4767; waiting for Android frames.";
   },
 
   bindCopyButtons() {

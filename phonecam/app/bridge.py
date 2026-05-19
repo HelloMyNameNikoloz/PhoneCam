@@ -1,31 +1,33 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import time
 from typing import Any, Dict, List
 
-from app.camera_runner import CameraRunner
 from app.config import DEFAULT_SETTINGS
 from app.device_detector import DeviceDetector
+from app.frame_receiver import FrameReceiver
 from app.logger import MemoryLogger
-from app.paths import adb_path, scrcpy_path, settings_path
+from app.paths import adb_path, settings_path
+from app.process_utils import run_capture
 
 
 class PhoneCamBridge:
     def __init__(self) -> None:
         self.logger = MemoryLogger()
         self.detector = DeviceDetector(adb_path())
-        self.runner = CameraRunner(scrcpy_path())
+        self.receiver = FrameReceiver(self._receiver_log)
         self.settings = self.load_settings()
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
+        self._reverse_device: str | None = None
+        self._virtual_camera_checked = 0.0
+        self._virtual_camera_installed = False
+        self.receiver.start()
         self.logger.info("PhoneCam initialized")
 
     def get_status(self) -> Dict[str, Any]:
-        self._handle_disconnected_camera()
-        if not self.runner.is_running():
-            self._refresh_devices(log_changes=False)
-        self._handle_autostart()
+        self._refresh_devices(log_changes=False)
         return self._status_payload()
 
     def refresh_devices(self) -> Dict[str, Any]:
@@ -34,20 +36,16 @@ class PhoneCamBridge:
 
     def start_camera(self, settings: Dict[str, Any]) -> Dict[str, Any]:
         self.save_settings(settings)
-        if self.runner.is_running():
-            self.logger.warning("Camera already running")
-            return self._status_payload("Camera already running")
         if not self._selected_ready_device():
             self.logger.warning("No authorized Android device available")
             return self._status_payload("Connect and authorize an Android phone first")
-
-        ok, message = self.runner.start(self._settings_for_run())
-        (self.logger.success if ok else self.logger.error)(message)
-        return self._status_payload(None if ok else message)
+        self.receiver.start()
+        self._ensure_usb_reverse()
+        return self._status_payload()
 
     def stop_camera(self) -> Dict[str, Any]:
-        stopped = self.runner.stop()
-        self.logger.info("Camera stopped" if stopped else "Camera was not running")
+        self.receiver.stop()
+        self.logger.info("Frame receiver stopped")
         return self._status_payload()
 
     def get_logs(self) -> List[Dict[str, str]]:
@@ -73,8 +71,7 @@ class PhoneCamBridge:
         return self._sanitize_settings({**DEFAULT_SETTINGS, **loaded})
 
     def shutdown(self) -> None:
-        if self.runner.stop():
-            self.logger.info("Stopped camera on exit")
+        self.receiver.stop()
 
     def _refresh_devices(self, log_changes: bool) -> None:
         previous = {(d["id"], d["status"]) for d in self.devices}
@@ -86,24 +83,10 @@ class PhoneCamBridge:
             self.logger.error(result.error)
         if current != previous:
             self._log_device_state()
-
-    def _handle_disconnected_camera(self) -> None:
-        exit_code = self.runner.reap_exit()
-        if exit_code not in (None, 0):
-            self.logger.error(f"scrcpy exited with code {exit_code}")
-            self._refresh_devices(log_changes=False)
-
-    def _handle_autostart(self) -> None:
-        if not self.runner.is_running() and self._selected_ready_device():
-            ok, message = self.runner.start(self._settings_for_run())
-            (self.logger.success if ok else self.logger.error)(message)
+        self._ensure_usb_reverse()
 
     def _restart_if_running(self) -> None:
-        if not self.runner.is_running():
-            return
-        self.runner.stop()
-        ok, message = self.runner.start(self._settings_for_run())
-        (self.logger.success if ok else self.logger.error)(f"Settings applied: {message}")
+        self._ensure_usb_reverse()
 
     def _selected_ready_device(self) -> Dict[str, str] | None:
         ready = [d for d in self.devices if d["status"] == "device"]
@@ -120,22 +103,25 @@ class PhoneCamBridge:
         return settings
 
     def _status_payload(self, error: str | None = None) -> Dict[str, Any]:
+        receiver_status = self.receiver.status()
         status = self._app_status(error)
         return {
             "devices": self.devices,
             "settings": self.settings,
-            "cameraRunning": self.runner.is_running(),
+            "cameraRunning": receiver_status["framesReceived"] > 0,
+            "frameReceiver": receiver_status,
+            "virtualCameraInstalled": self._check_virtual_camera_installed(),
             "status": status,
             "error": error or self.device_error,
             "missingAdb": not adb_path().exists(),
-            "missingScrcpy": not scrcpy_path().exists(),
+            "missingScrcpy": False,
             "logs": self.get_logs(),
         }
 
     def _app_status(self, error: str | None) -> str:
-        if error or self.device_error or not adb_path().exists() or not scrcpy_path().exists():
+        if error or self.device_error or not adb_path().exists():
             return "error"
-        if self.runner.is_running():
+        if self.receiver.status()["framesReceived"] > 0:
             return "running"
         if any(d["status"] == "device" for d in self.devices):
             return "connected"
@@ -147,6 +133,42 @@ class PhoneCamBridge:
             return
         for device in self.devices:
             self.logger.info(f"Device {device['id']} is {device['status']}")
+
+    def _ensure_usb_reverse(self) -> None:
+        device = self._selected_ready_device()
+        device_id = device["id"] if device else None
+        if not device_id:
+            self._reverse_device = None
+        if not device_id or self._reverse_device == device_id or not adb_path().exists():
+            return
+        command = [str(adb_path()), "-s", device_id, "reverse", "tcp:4767", "tcp:4767"]
+        result = run_capture(command, timeout=5)
+        if result.returncode == 0:
+            self._reverse_device = device_id
+            self.logger.success("USB frame tunnel ready for PhoneCam Android companion")
+        else:
+            self.logger.warning((result.stderr or "ADB reverse failed").strip())
+
+    def _receiver_log(self, level: str, message: str) -> None:
+        getattr(self.logger, level, self.logger.info)(message)
+
+    def _check_virtual_camera_installed(self) -> bool:
+        if time.monotonic() - self._virtual_camera_checked < 10:
+            return self._virtual_camera_installed
+        self._virtual_camera_checked = time.monotonic()
+        command = [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue | "
+            "Where-Object { $_.FriendlyName -eq 'PhoneCam' } | Select-Object -First 1",
+        ]
+        try:
+            result = run_capture(command, timeout=3)
+            self._virtual_camera_installed = bool(result.stdout.strip())
+        except Exception:
+            self._virtual_camera_installed = False
+        return self._virtual_camera_installed
 
     @staticmethod
     def _sanitize_settings(settings: Dict[str, Any]) -> Dict[str, Any]:
