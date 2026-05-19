@@ -4,8 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -19,7 +17,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +36,6 @@ final class CameraStreamer {
     private CameraDevice camera;
     private CameraCaptureSession session;
     private volatile boolean sending;
-    private long lastSentMs;
     private int targetFps = 30;
     private int targetWidth = 1920;
     private int targetHeight = 1080;
@@ -63,7 +60,7 @@ final class CameraStreamer {
         CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
         Size size = chooseSize(info);
         fpsRange = CameraSupport.chooseFpsRange(info, targetFps);
-        reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.YUV_420_888, 3);
+        reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 3);
         reader.setOnImageAvailableListener(this::onImageAvailable, handler);
         openCamera(manager, cameraId);
     }
@@ -122,7 +119,7 @@ final class CameraStreamer {
 
     private Size chooseSize(CameraCharacteristics info) {
         Size[] sizes = info.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                .getOutputSizes(ImageFormat.YUV_420_888);
+                .getOutputSizes(ImageFormat.JPEG);
         Size fallback = sizes[0];
         for (Size size : sizes) {
             if (size.getWidth() == targetWidth && size.getHeight() == targetHeight) {
@@ -160,6 +157,8 @@ final class CameraStreamer {
             CaptureRequest.Builder request = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(surface);
             request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
+            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO);
+            request.set(CaptureRequest.JPEG_QUALITY, (byte) 72);
             session.setRepeatingRequest(request.build(), null, handler);
             listener.onStatus("Streaming to PhoneCam on Windows");
         } catch (Exception exc) {
@@ -169,16 +168,14 @@ final class CameraStreamer {
 
     private void onImageAvailable(ImageReader source) {
         try (Image image = source.acquireLatestImage()) {
-            if (image == null || sending || System.currentTimeMillis() - lastSentMs < 1000 / targetFps) {
+            if (image == null || sending) {
                 return;
             }
             sending = true;
-            lastSentMs = System.currentTimeMillis();
-            byte[] nv21 = YuvConverter.toNv21(image);
-            YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, image.getWidth(), image.getHeight(), null);
-            ByteArrayOutputStream jpeg = new ByteArrayOutputStream();
-            yuv.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 78, jpeg);
-            sender.execute(() -> send(jpeg.toByteArray()));
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] jpeg = new byte[buffer.remaining()];
+            buffer.get(jpeg);
+            sender.execute(() -> send(jpeg));
         } catch (Exception exc) {
             sending = false;
             listener.onStatus("Frame encode failed");

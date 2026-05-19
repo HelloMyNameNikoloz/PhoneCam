@@ -105,7 +105,7 @@ window.PhoneCamRender = {
   performanceCard(state) {
     const perf = state.performance || {};
     const health = perf.health || "bad";
-    const warning = health === "good" ? "" : `<p>Actual FPS is below target. Try 1080p30, use USB, close background apps, or reduce resolution.</p>`;
+    const warning = health === "good" ? "" : `<p>Actual FPS is below target. Phone encode, USB transport, or PC decode is limiting the feed. Try 1080p30 or lower resolution.</p>`;
     return `<div class="performance-card ${health}">
       <div><strong>Target</strong><span>${perf.targetFps || state.settings.fps} FPS</span></div>
       <div><strong>Capture</strong><span>${perf.captureFps || 0} FPS</span></div>

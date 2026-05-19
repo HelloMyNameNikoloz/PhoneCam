@@ -20,7 +20,15 @@ class FrameStats:
         self._last_output_time = time.monotonic()
         self._output_fps = 0.0
 
+    def reset(self) -> None:
+        self.capture_times.clear()
+        self._last_output_count = 0
+        self._last_output_time = time.monotonic()
+        self._output_fps = 0.0
+
     def record_capture_frame(self, width: int, height: int) -> None:
+        if self.width and self.height and (self.width != width or self.height != height):
+            self.reset()
         self.capture_times.append(time.monotonic())
         self.width = width
         self.height = height
@@ -36,11 +44,12 @@ class FrameStats:
             self._last_output_count = output_frames
             self._last_output_time = now
         actual = min(capture_fps, self._output_fps) if output_frames else capture_fps
+        dropped = int(native.get("duplicateFrames", 0)) + self._capture_shortfall(now, target_fps)
         return {
             "targetFps": target_fps,
             "captureFps": round(capture_fps, 1),
             "outputFps": round(self._output_fps, 1),
-            "droppedFrames": int(native.get("duplicateFrames", 0)),
+            "droppedFrames": dropped,
             "latencyMs": int(native.get("latencyMs", 0)),
             "resolution": f"{self.width}x{self.height}" if self.width else None,
             "health": self._health(actual, target_fps),
@@ -53,6 +62,13 @@ class FrameStats:
             return float(len(self.capture_times))
         span = max(self.capture_times[-1] - self.capture_times[0], 0.001)
         return (len(self.capture_times) - 1) / span
+
+    def _capture_shortfall(self, now: float, target_fps: int) -> int:
+        if target_fps <= 0 or len(self.capture_times) < 2:
+            return 0
+        span = min(now - self.capture_times[0], 1.5)
+        expected = int(target_fps * span)
+        return max(0, expected - len(self.capture_times))
 
     @staticmethod
     def _health(actual: float, target: int) -> str:

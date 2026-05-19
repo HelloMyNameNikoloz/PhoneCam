@@ -58,6 +58,7 @@ class PhoneCamBridge:
         target = settings_path()
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(self.settings, indent=2), encoding="utf-8")
+        self.receiver.reset_performance()
         self._restart_if_running()
         return self.settings
 
@@ -172,6 +173,7 @@ class PhoneCamBridge:
         if install.returncode != 0:
             self.logger.warning((install.stderr or install.stdout or "Companion install failed").strip())
             return
+        run_capture([str(adb_path()), "-s", device_id, "shell", "am", "force-stop", "com.phonecam.companion"], timeout=5)
         start = run_capture([
             str(adb_path()),
             "-s",

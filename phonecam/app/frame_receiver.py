@@ -59,6 +59,9 @@ class FrameReceiver:
     def performance(self, target_fps: int) -> dict[str, object]:
         return self.stats.snapshot(target_fps)
 
+    def reset_performance(self) -> None:
+        self.stats.reset()
+
     def _accept_frame(self, jpeg: bytes) -> None:
         try:
             width, height = self.writer.write_jpeg(jpeg)

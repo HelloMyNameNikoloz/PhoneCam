@@ -2,6 +2,7 @@ package com.phonecam.companion;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -24,6 +25,7 @@ public class MainActivity extends Activity {
     private CameraStreamer streamer;
     private TextView status;
     private TextView statusPill;
+    private TextView hint;
     private int targetFps = 30;
     private String resolution = "1920x1080";
     private String facing = "back";
@@ -31,12 +33,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        targetFps = getIntent().getIntExtra("fps", 30);
-        resolution = getIntent().getStringExtra("resolution");
-        facing = getIntent().getStringExtra("facing");
+        readIntent(getIntent());
         streamer = new CameraStreamer(this, this::setStatus);
         buildUi();
         requestCameraPermission();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        readIntent(intent);
+        updateHint();
+        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startStream();
+        }
     }
 
     @Override
@@ -69,7 +80,8 @@ public class MainActivity extends Activity {
         statusPill.setBackground(round(0x2010a37f, 999, 0x6610a37f));
 
         TextView title = label("Camera bridge", 22, TEXT, true);
-        TextView hint = label((resolution == null ? "1920x1080" : resolution) + " at " + targetFps + " FPS", 15, MUTED, false);
+        hint = label("", 15, MUTED, false);
+        updateHint();
         status = label("Connect USB and open PhoneCam on Windows.", 15, MUTED, false);
 
         LinearLayout actions = row(10);
@@ -153,6 +165,18 @@ public class MainActivity extends Activity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void readIntent(Intent intent) {
+        targetFps = intent.getIntExtra("fps", 30);
+        resolution = intent.getStringExtra("resolution");
+        facing = intent.getStringExtra("facing");
+        if (resolution == null) resolution = "1920x1080";
+        if (facing == null) facing = "back";
+    }
+
+    private void updateHint() {
+        if (hint != null) hint.setText(resolution + " at " + targetFps + " FPS");
     }
 
     private void requestCameraPermission() {
