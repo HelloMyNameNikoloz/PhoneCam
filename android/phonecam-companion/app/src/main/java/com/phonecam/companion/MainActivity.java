@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,6 +36,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         readIntent(getIntent());
         streamer = new CameraStreamer(this, this::setStatus);
+        keepCameraSessionVisible();
         buildUi();
         requestCameraPermission();
     }
@@ -165,6 +167,12 @@ public class MainActivity extends Activity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void keepCameraSessionVisible() {
+        setShowWhenLocked(true);
+        setTurnScreenOn(true);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void readIntent(Intent intent) {

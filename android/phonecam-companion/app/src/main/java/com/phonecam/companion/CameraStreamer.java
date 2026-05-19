@@ -13,6 +13,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
@@ -23,9 +24,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 final class CameraStreamer {
-    interface Listener {
-        void onStatus(String message);
-    }
+    private static final String TAG = "PhoneCam";
+
+    interface Listener { void onStatus(String message); }
 
     private final Context context;
     private final Listener listener;
@@ -60,6 +61,7 @@ final class CameraStreamer {
         CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
         Size size = chooseSize(info);
         fpsRange = CameraSupport.chooseFpsRange(info, targetFps);
+        Log.i(TAG, "Using " + size.getWidth() + "x" + size.getHeight() + " " + fpsRange);
         reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 3);
         reader.setOnImageAvailableListener(this::onImageAvailable, handler);
         openCamera(manager, cameraId);
@@ -158,7 +160,7 @@ final class CameraStreamer {
             request.addTarget(surface);
             request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO);
-            request.set(CaptureRequest.JPEG_QUALITY, (byte) 72);
+            request.set(CaptureRequest.JPEG_QUALITY, jpegQuality());
             session.setRepeatingRequest(request.build(), null, handler);
             listener.onStatus("Streaming to PhoneCam on Windows");
         } catch (Exception exc) {
@@ -186,6 +188,7 @@ final class CameraStreamer {
         try {
             NetworkClient.sendJpeg(jpeg);
         } catch (Exception exc) {
+            Log.w(TAG, "Frame send failed", exc);
             listener.onStatus("Waiting for Windows bridge");
         } finally {
             sending = false;
@@ -202,6 +205,10 @@ final class CameraStreamer {
             targetHeight = Integer.parseInt(parts[1]);
         } catch (Exception ignored) {
         }
+    }
+
+    private byte jpegQuality() {
+        return (byte) (targetFps >= 120 ? 54 : targetFps >= 60 ? 64 : 72);
     }
 
     private static void closeQuietly(AutoCloseable closeable) {

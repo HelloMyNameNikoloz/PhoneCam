@@ -23,6 +23,10 @@ class FrameReceiver:
         self.last_size: str | None = None
         self._condition = threading.Condition()
         self._latest_jpeg: bytes | None = None
+        self._pending_jpeg: bytes | None = None
+        self._decode_condition = threading.Condition()
+        self._decode_thread: threading.Thread | None = None
+        self._stopping = False
         self._server: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
         self._stream_server = FrameStreamServer(port + 1, self._accept_frame, on_log)
@@ -33,6 +37,9 @@ class FrameReceiver:
         self._server = ReusableHttpServer(("127.0.0.1", self.port), self._handler())
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
+        self._stopping = False
+        self._decode_thread = threading.Thread(target=self._decode_loop, daemon=True)
+        self._decode_thread.start()
         self._stream_server.start()
         self.on_log("info", f"Frame receiver listening on USB reverse port {self.port}")
 
@@ -44,6 +51,10 @@ class FrameReceiver:
         self._server = None
         self._thread = None
         self._stream_server.stop()
+        with self._decode_condition:
+            self._stopping = True
+            self._decode_condition.notify_all()
+        self._decode_thread = None
 
     def status(self) -> dict[str, object]:
         return {
@@ -63,9 +74,31 @@ class FrameReceiver:
         self.stats.reset()
 
     def _accept_frame(self, jpeg: bytes) -> None:
+        self.stats.record_capture_frame()
+        dropped = 0
+        with self._decode_condition:
+            if self._pending_jpeg is not None:
+                dropped = 1
+            self._pending_jpeg = jpeg
+            self._decode_condition.notify()
+        if dropped:
+            self.stats.record_dropped_frames(dropped)
+
+    def _decode_loop(self) -> None:
+        while True:
+            with self._decode_condition:
+                self._decode_condition.wait_for(lambda: self._pending_jpeg is not None or self._stopping)
+                if self._stopping:
+                    return
+                jpeg = self._pending_jpeg
+                self._pending_jpeg = None
+            if jpeg:
+                self._decode_frame(jpeg)
+
+    def _decode_frame(self, jpeg: bytes) -> None:
         try:
             width, height = self.writer.write_jpeg(jpeg)
-            self.stats.record_capture_frame(width, height)
+            self.stats.record_decoded_frame(width, height)
             self.frames_received += 1
             self.last_size = f"{width}x{height}"
             with self._condition:

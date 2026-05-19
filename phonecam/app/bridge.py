@@ -10,6 +10,7 @@ from app.frame_receiver import FrameReceiver
 from app.logger import MemoryLogger
 from app.paths import adb_path, companion_apk_path, settings_path
 from app.process_utils import run_capture
+from app.virtual_camera_status import is_phonecam_installed
 
 
 class PhoneCamBridge:
@@ -21,7 +22,9 @@ class PhoneCamBridge:
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
         self._reverse_device: str | None = None
+        self._installed_device: str | None = None
         self._companion_device: str | None = None
+        self._companion_signature: tuple[str, int, str, str] | None = None
         self._virtual_camera_checked = 0.0
         self._virtual_camera_installed = False
         self.receiver.start()
@@ -100,13 +103,6 @@ class PhoneCamBridge:
             return next((d for d in ready if d["id"] == selected), None) or (ready[0] if ready else None)
         return ready[0] if ready else None
 
-    def _settings_for_run(self) -> Dict[str, Any]:
-        settings = self.settings.copy()
-        device = self._selected_ready_device()
-        if device:
-            settings["selectedDeviceId"] = device["id"]
-        return settings
-
     def _status_payload(self, error: str | None = None) -> Dict[str, Any]:
         receiver_status = self.receiver.status()
         status = self._app_status(error)
@@ -166,14 +162,22 @@ class PhoneCamBridge:
         device_id = device["id"] if device else None
         if not device_id:
             self._companion_device = None
+            self._companion_signature = None
             return
-        if self._companion_device == device_id or not companion_apk_path().exists():
+        signature = (
+            device_id,
+            int(self.settings.get("fps", 30)),
+            str(self.settings.get("resolution", "1920x1080")),
+            str(self.settings.get("cameraFacing", "back")),
+        )
+        if self._companion_signature == signature or not companion_apk_path().exists():
             return
-        install = run_capture([str(adb_path()), "-s", device_id, "install", "-r", str(companion_apk_path())], timeout=45)
-        if install.returncode != 0:
-            self.logger.warning((install.stderr or install.stdout or "Companion install failed").strip())
-            return
-        run_capture([str(adb_path()), "-s", device_id, "shell", "am", "force-stop", "com.phonecam.companion"], timeout=5)
+        if self._installed_device != device_id:
+            install = run_capture([str(adb_path()), "-s", device_id, "install", "-r", str(companion_apk_path())], timeout=45)
+            if install.returncode != 0:
+                self.logger.warning((install.stderr or install.stdout or "Companion install failed").strip())
+                return
+            self._installed_device = device_id
         start = run_capture([
             str(adb_path()),
             "-s",
@@ -195,6 +199,7 @@ class PhoneCamBridge:
         ], timeout=8)
         if start.returncode == 0:
             self._companion_device = device_id
+            self._companion_signature = signature
             self.logger.success("PhoneCam Android companion installed and started")
         else:
             self.logger.warning((start.stderr or start.stdout or "Companion start failed").strip())
@@ -206,18 +211,7 @@ class PhoneCamBridge:
         if time.monotonic() - self._virtual_camera_checked < 10:
             return self._virtual_camera_installed
         self._virtual_camera_checked = time.monotonic()
-        command = [
-            "powershell",
-            "-NoProfile",
-            "-Command",
-            "Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue | "
-            "Where-Object { $_.FriendlyName -eq 'PhoneCam' } | Select-Object -First 1",
-        ]
-        try:
-            result = run_capture(command, timeout=3)
-            self._virtual_camera_installed = bool(result.stdout.strip())
-        except Exception:
-            self._virtual_camera_installed = False
+        self._virtual_camera_installed = is_phonecam_installed()
         return self._virtual_camera_installed
 
     @staticmethod

@@ -21,6 +21,7 @@ window.PhoneCamState = {
       targetFps: 30,
       captureFps: 0,
       outputFps: 0,
+      bridgeFps: 0,
       droppedFrames: 0,
       latencyMs: 0,
       resolution: null,

@@ -26,10 +26,12 @@ class FrameBufferWriter:
         self._last_debug_write = 0.0
 
     def write_jpeg(self, jpeg: bytes) -> tuple[int, int]:
-        image = Image.open(BytesIO(jpeg)).convert("RGBA")
-        width, height = image.size
-        stride = width * 4
-        bgra = image.tobytes("raw", "BGRA")
+        with Image.open(BytesIO(jpeg)) as image:
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+            width, height = image.size
+            stride = width * 4
+            bgra = image.tobytes("raw", "BGRX")
         if len(bgra) > MAX_FRAME_BYTES:
             raise ValueError("Frame exceeds shared buffer size")
         self._sequence = (self._sequence + 1) & 0xFFFFFFFF

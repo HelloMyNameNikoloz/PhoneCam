@@ -109,6 +109,7 @@ window.PhoneCamRender = {
     return `<div class="performance-card ${health}">
       <div><strong>Target</strong><span>${perf.targetFps || state.settings.fps} FPS</span></div>
       <div><strong>Capture</strong><span>${perf.captureFps || 0} FPS</span></div>
+      <div><strong>Bridge</strong><span>${perf.bridgeFps || 0} FPS</span></div>
       <div><strong>Output</strong><span>${perf.outputFps || 0} FPS</span></div>
       <div><strong>Dropped</strong><span>${perf.droppedFrames || 0}</span></div>
       <div><strong>Latency</strong><span>${perf.latencyMs || 0} ms</span></div>

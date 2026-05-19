@@ -67,7 +67,10 @@ class FrameStreamServer:
             def _read_exact(self, size: int) -> bytes | None:
                 chunks = bytearray()
                 while len(chunks) < size:
-                    chunk = self.rfile.read(size - len(chunks))
+                    try:
+                        chunk = self.rfile.read(size - len(chunks))
+                    except ConnectionError:
+                        return None
                     if not chunk:
                         return None
                     chunks.extend(chunk)
