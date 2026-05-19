@@ -12,6 +12,7 @@ DEFAULT_SETTINGS = {
     "cameraFacing": "back",
     "resolution": "1920x1080",
     "fps": 30,
+    "showPreview": True,
     "keepScreenOff": False,
     "selectedDeviceId": None,
 }

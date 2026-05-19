@@ -43,6 +43,7 @@ window.PhoneCamRender = {
     document.querySelector("#camera-facing").value = settings.cameraFacing;
     document.querySelector("#resolution").value = settings.resolution;
     document.querySelector("#fps").value = String(settings.fps);
+    document.querySelector("#show-preview").checked = Boolean(settings.showPreview);
   },
 
   sourceCard(state) {
@@ -69,6 +70,7 @@ window.PhoneCamRender = {
   stage(state) {
     const settings = state.settings;
     const running = state.cameraRunning;
+    const receiver = state.frameReceiver || {};
     const subtitle = running ? "Android frames are feeding the PhoneCam virtual camera." : this.previewHint(state);
     document.querySelector("#stage-subtitle").textContent = subtitle;
     document.querySelector("#stage-metrics").innerHTML = [
@@ -77,11 +79,13 @@ window.PhoneCamRender = {
       `<span class="badge accent">${settings.cameraFacing}</span>`,
     ].join("");
 
-    const content = running
+    const content = running && settings.showPreview
+      ? `<img class="live-preview" src="${receiver.streamUrl}" alt="PhoneCam live preview" />`
+      : running
       ? `<div class="camera-glyph" aria-hidden="true"></div>
         <div class="viewer-text">
           <h2>Virtual camera feed active</h2>
-          <p>Select PhoneCam in OBS, browsers, Discord, Zoom, or Teams.</p>
+          <p>Live preview is off. Select PhoneCam in any camera dropdown.</p>
         </div>`
       : `<div class="camera-glyph" aria-hidden="true"></div>
         <div class="viewer-text">

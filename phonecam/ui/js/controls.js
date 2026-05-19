@@ -1,7 +1,7 @@
 window.PhoneCamControls = {
   bind() {
     document.addEventListener("click", (event) => this.handleClick(event));
-    ["device-select", "camera-facing", "resolution", "fps"]
+    ["device-select", "camera-facing", "resolution", "fps", "show-preview"]
       .forEach((id) => document.querySelector(`#${id}`).addEventListener("change", () => this.saveSettings()));
   },
 
@@ -11,6 +11,7 @@ window.PhoneCamControls = {
       cameraFacing: document.querySelector("#camera-facing").value,
       resolution: document.querySelector("#resolution").value,
       fps: Number(document.querySelector("#fps").value),
+      showPreview: document.querySelector("#show-preview").checked,
     };
   },
 

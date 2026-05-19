@@ -43,6 +43,11 @@
   background: #000;
 }
 
+.viewer-card:has(.live-preview) {
+  padding: 0;
+  background: #050609;
+}
+
 .camera-glyph {
   position: relative;
   width: 104px;

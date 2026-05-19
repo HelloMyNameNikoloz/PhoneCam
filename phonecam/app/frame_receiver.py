@@ -18,6 +18,8 @@ class FrameReceiver:
         self.on_log = on_log
         self.frames_received = 0
         self.last_size: str | None = None
+        self._condition = threading.Condition()
+        self._latest_jpeg: bytes | None = None
         self._server: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
 
@@ -43,6 +45,7 @@ class FrameReceiver:
             "framesReceived": self.frames_received,
             "lastSize": self.last_size,
             "postUrl": f"http://127.0.0.1:{self.port}/frame",
+            "streamUrl": f"http://127.0.0.1:{self.port}/stream.mjpg",
         }
 
     def _handler(self) -> type[BaseHTTPRequestHandler]:
@@ -52,6 +55,8 @@ class FrameReceiver:
             def do_GET(self) -> None:
                 if self.path.startswith("/health"):
                     self._send(200, b"ok")
+                elif self.path.startswith("/stream.mjpg"):
+                    self._stream()
                 else:
                     self._send(404, b"not found")
 
@@ -64,9 +69,13 @@ class FrameReceiver:
                     self._send(400, b"invalid frame")
                     return
                 try:
-                    width, height = receiver.writer.write_jpeg(self.rfile.read(length))
+                    jpeg = self.rfile.read(length)
+                    width, height = receiver.writer.write_jpeg(jpeg)
                     receiver.frames_received += 1
                     receiver.last_size = f"{width}x{height}"
+                    with receiver._condition:
+                        receiver._latest_jpeg = jpeg
+                        receiver._condition.notify_all()
                     self._send(200, b"ok")
                 except Exception as exc:
                     receiver.on_log("error", f"Frame decode failed: {exc}")
@@ -80,5 +89,25 @@ class FrameReceiver:
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
+
+            def _stream(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                seen = 0
+                while True:
+                    with receiver._condition:
+                        receiver._condition.wait_for(lambda: receiver.frames_received != seen, timeout=5)
+                        frame = receiver._latest_jpeg
+                        seen = receiver.frames_received
+                    if not frame:
+                        continue
+                    try:
+                        self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n")
+                        self.wfile.write(f"Content-Length: {len(frame)}\r\n\r\n".encode())
+                        self.wfile.write(frame + b"\r\n")
+                    except OSError:
+                        break
 
         return Handler
