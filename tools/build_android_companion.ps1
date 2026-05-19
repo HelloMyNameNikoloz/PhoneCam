@@ -23,6 +23,9 @@ try {
         throw "Build finished but APK was not found at $Apk"
     }
     Write-Host "Built $Apk"
+    $AssetApk = Join-Path $Root "phonecam\assets\PhoneCamCompanion.apk"
+    Copy-Item -Path $Apk -Destination $AssetApk -Force
+    Write-Host "Copied companion APK to $AssetApk"
 
     if ($Install) {
         $Adb = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"

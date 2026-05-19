@@ -8,7 +8,10 @@ from pathlib import Path
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     icon = root / "assets" / "icon.ico"
+    companion = root / "assets" / "PhoneCamCompanion.apk"
     add_sep = ";"
+    if not companion.exists():
+        raise SystemExit("Missing assets/PhoneCamCompanion.apk. Run ..\\tools\\build_android_companion.ps1 first.")
     command = [
         sys.executable,
         "-m",

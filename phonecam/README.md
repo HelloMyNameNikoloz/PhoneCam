@@ -10,7 +10,7 @@ When PhoneCam is open it stays available in the Windows system tray, receives fr
 - Python 3.10+
 - `adb.exe`, `AdbWinApi.dll`, and `AdbWinUsbApi.dll` placed in `bin/`
 - Installed PhoneCam native camera package
-- Installed PhoneCam Android companion
+- `PhoneCamCompanion.apk` bundled in `assets/`
 
 Install Python dependencies:
 
@@ -30,7 +30,7 @@ python app/main.py
 2. Enable USB Debugging.
 3. Connect phone via USB.
 4. Accept the RSA debugging prompt on the phone.
-5. Open the PhoneCam Android companion.
+5. PhoneCam installs and starts its Android bridge automatically.
 
 ## OBS Setup
 

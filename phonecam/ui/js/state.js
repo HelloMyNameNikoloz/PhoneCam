@@ -19,6 +19,7 @@ window.PhoneCamState = {
     activePanel: "camera",
     error: null,
     missingAdb: false,
+    missingCompanionApk: false,
     missingScrcpy: false,
     logs: [],
   },

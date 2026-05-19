@@ -109,8 +109,9 @@ window.PhoneCamRender = {
 
   previewHint(state) {
     if (state.missingAdb) return "adb.exe is missing from the bundled bin folder.";
+    if (state.missingCompanionApk) return "PhoneCamCompanion.apk is missing from bundled assets.";
     if (!state.virtualCameraInstalled) return "PhoneCam virtual camera is not installed yet.";
-    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Waiting for Android companion frames.";
+    if (state.devices.some((d) => d.status === "device")) return "Phone connected. Starting the Android bridge automatically.";
     return "Waiting for an authorized Android phone over USB.";
   },
 
@@ -121,6 +122,7 @@ window.PhoneCamRender = {
 
   deviceMessage(state, device) {
     if (state.missingAdb) return "Bundled adb.exe was not found in the bin folder.";
+    if (state.missingCompanionApk) return "PhoneCamCompanion.apk was not found in the assets folder.";
     if (state.error) return state.error;
     if (!device) return "Connect your Android phone with USB and accept the debugging prompt.";
     if (device.status === "unauthorized") return "Unlock your phone and accept the USB debugging prompt.";

@@ -19,6 +19,10 @@ def asset_path(*parts: str) -> Path:
     return bundled_root() / "assets" / Path(*parts)
 
 
+def companion_apk_path() -> Path:
+    return asset_path("PhoneCamCompanion.apk")
+
+
 def bin_path(name: str) -> Path:
     return bundled_root() / "bin" / name
 
