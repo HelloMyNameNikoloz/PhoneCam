@@ -93,11 +93,27 @@ window.PhoneCamRender = {
           <p>Connect USB, authorize ADB, then open the PhoneCam Android companion.</p>
         </div>`;
     document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">${content}</div>
+    ${this.performanceCard(state)}
     <div class="stage-toast">
       <strong>Virtual Camera</strong>
       <span>${this.virtualCameraMessage(state)}</span>
       <strong class="toast-line">Frame Bridge</strong>
       <span>${this.frameBridgeMessage(state)}</span>
+    </div>`;
+  },
+
+  performanceCard(state) {
+    const perf = state.performance || {};
+    const health = perf.health || "bad";
+    const warning = health === "good" ? "" : `<p>Actual FPS is below target. Try 1080p30, use USB, close background apps, or reduce resolution.</p>`;
+    return `<div class="performance-card ${health}">
+      <div><strong>Target</strong><span>${perf.targetFps || state.settings.fps} FPS</span></div>
+      <div><strong>Capture</strong><span>${perf.captureFps || 0} FPS</span></div>
+      <div><strong>Output</strong><span>${perf.outputFps || 0} FPS</span></div>
+      <div><strong>Dropped</strong><span>${perf.droppedFrames || 0}</span></div>
+      <div><strong>Latency</strong><span>${perf.latencyMs || 0} ms</span></div>
+      <div><strong>Resolution</strong><span>${perf.resolution || this.resolutionLabel(state.settings.resolution)}</span></div>
+      ${warning}
     </div>`;
   },
 

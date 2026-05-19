@@ -39,20 +39,30 @@ final class CameraStreamer {
     private CameraCaptureSession session;
     private volatile boolean sending;
     private long lastSentMs;
+    private int targetFps = 30;
+    private int targetWidth = 1920;
+    private int targetHeight = 1080;
+    private String targetFacing = "back";
+    private Range<Integer> fpsRange = new Range<>(30, 30);
 
     CameraStreamer(Context context, Listener listener) {
         this.context = context;
         this.listener = listener;
     }
 
-    void start() throws Exception {
+    void start(int fps, String resolution, String facing) throws Exception {
         stop();
+        targetFps = Math.max(1, fps);
+        targetFacing = facing == null ? "back" : facing;
+        applyResolution(resolution);
         thread = new HandlerThread("PhoneCamCamera");
         thread.start();
         handler = new Handler(thread.getLooper());
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         String cameraId = chooseBackCamera(manager);
-        Size size = chooseSize(manager.getCameraCharacteristics(cameraId));
+        CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
+        Size size = chooseSize(info);
+        fpsRange = CameraSupport.chooseFpsRange(info, targetFps);
         reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.YUV_420_888, 3);
         reader.setOnImageAvailableListener(this::onImageAvailable, handler);
         openCamera(manager, cameraId);
@@ -100,7 +110,10 @@ final class CameraStreamer {
         for (String id : manager.getCameraIdList()) {
             CameraCharacteristics info = manager.getCameraCharacteristics(id);
             Integer facing = info.get(CameraCharacteristics.LENS_FACING);
-            if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+            int wanted = "front".equals(targetFacing)
+                    ? CameraCharacteristics.LENS_FACING_FRONT
+                    : CameraCharacteristics.LENS_FACING_BACK;
+            if (facing != null && facing == wanted) {
                 return id;
             }
         }
@@ -112,7 +125,7 @@ final class CameraStreamer {
                 .getOutputSizes(ImageFormat.YUV_420_888);
         Size fallback = sizes[0];
         for (Size size : sizes) {
-            if (size.getWidth() == 1920 && size.getHeight() == 1080) {
+            if (size.getWidth() == targetWidth && size.getHeight() == targetHeight) {
                 return size;
             }
             if (size.getWidth() == 1280 && size.getHeight() == 720) {
@@ -146,7 +159,7 @@ final class CameraStreamer {
         try {
             CaptureRequest.Builder request = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(surface);
-            request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<>(30, 30));
+            request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
             session.setRepeatingRequest(request.build(), null, handler);
             listener.onStatus("Streaming to PhoneCam on Windows");
         } catch (Exception exc) {
@@ -156,7 +169,7 @@ final class CameraStreamer {
 
     private void onImageAvailable(ImageReader source) {
         try (Image image = source.acquireLatestImage()) {
-            if (image == null || sending || System.currentTimeMillis() - lastSentMs < 33) {
+            if (image == null || sending || System.currentTimeMillis() - lastSentMs < 1000 / targetFps) {
                 return;
             }
             sending = true;
@@ -174,11 +187,23 @@ final class CameraStreamer {
 
     private void send(byte[] jpeg) {
         try {
-            NetworkClient.postJpeg(jpeg);
+            NetworkClient.sendJpeg(jpeg);
         } catch (Exception exc) {
             listener.onStatus("Waiting for Windows bridge");
         } finally {
             sending = false;
+        }
+    }
+
+    private void applyResolution(String resolution) {
+        if (resolution == null || !resolution.contains("x")) {
+            return;
+        }
+        try {
+            String[] parts = resolution.split("x");
+            targetWidth = Integer.parseInt(parts[0]);
+            targetHeight = Integer.parseInt(parts[1]);
+        } catch (Exception ignored) {
         }
     }
 

@@ -1,28 +1,51 @@
 package com.phonecam.companion;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 final class NetworkClient {
+    private static final String HOST = "127.0.0.1";
+    private static final int PORT = 4768;
+    private static Socket socket;
+    private static DataOutputStream output;
+
     private NetworkClient() {
     }
 
-    static void postJpeg(byte[] jpeg) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL("http://127.0.0.1:4767/frame").openConnection();
-        connection.setConnectTimeout(600);
-        connection.setReadTimeout(600);
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "image/jpeg");
-        connection.setFixedLengthStreamingMode(jpeg.length);
-        try (OutputStream output = connection.getOutputStream()) {
+    static synchronized void sendJpeg(byte[] jpeg) throws Exception {
+        try {
+            ensureConnected();
+            output.writeInt(jpeg.length);
             output.write(jpeg);
+            output.flush();
+        } catch (IOException exc) {
+            close();
+            throw exc;
         }
-        int code = connection.getResponseCode();
-        connection.disconnect();
-        if (code < 200 || code > 299) {
-            throw new IllegalStateException("Windows bridge returned HTTP " + code);
+    }
+
+    private static void ensureConnected() throws IOException {
+        if (socket != null && socket.isConnected() && !socket.isClosed()) {
+            return;
         }
+        socket = new Socket();
+        socket.setTcpNoDelay(true);
+        socket.connect(new InetSocketAddress(HOST, PORT), 600);
+        output = new DataOutputStream(socket.getOutputStream());
+    }
+
+    private static void close() {
+        try {
+            if (output != null) output.close();
+        } catch (IOException ignored) {
+        }
+        try {
+            if (socket != null) socket.close();
+        } catch (IOException ignored) {
+        }
+        output = null;
+        socket = null;
     }
 }

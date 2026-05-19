@@ -89,6 +89,8 @@ class PhoneCamBridge:
 
     def _restart_if_running(self) -> None:
         self._ensure_usb_reverse()
+        self._companion_device = None
+        self._ensure_companion_running()
 
     def _selected_ready_device(self) -> Dict[str, str] | None:
         ready = [d for d in self.devices if d["status"] == "device"]
@@ -112,6 +114,7 @@ class PhoneCamBridge:
             "settings": self.settings,
             "cameraRunning": receiver_status["framesReceived"] > 0,
             "frameReceiver": receiver_status,
+            "performance": self.receiver.performance(int(self.settings.get("fps", 30))),
             "virtualCameraInstalled": self._check_virtual_camera_installed(),
             "status": status,
             "error": error or self.device_error,
@@ -144,13 +147,18 @@ class PhoneCamBridge:
             self._reverse_device = None
         if not device_id or self._reverse_device == device_id or not adb_path().exists():
             return
-        command = [str(adb_path()), "-s", device_id, "reverse", "tcp:4767", "tcp:4767"]
+        ok = self._reverse_port(device_id, 4767) and self._reverse_port(device_id, 4768)
+        if ok:
+            self._reverse_device = device_id
+            self.logger.success("USB frame tunnels ready for PhoneCam Android companion")
+
+    def _reverse_port(self, device_id: str, port: int) -> bool:
+        command = [str(adb_path()), "-s", device_id, "reverse", f"tcp:{port}", f"tcp:{port}"]
         result = run_capture(command, timeout=5)
         if result.returncode == 0:
-            self._reverse_device = device_id
-            self.logger.success("USB frame tunnel ready for PhoneCam Android companion")
-        else:
-            self.logger.warning((result.stderr or "ADB reverse failed").strip())
+            return True
+        self.logger.warning((result.stderr or f"ADB reverse failed for port {port}").strip())
+        return False
 
     def _ensure_companion_running(self) -> None:
         device = self._selected_ready_device()
@@ -169,10 +177,19 @@ class PhoneCamBridge:
             "-s",
             device_id,
             "shell",
-            "monkey",
-            "-p",
-            "com.phonecam.companion",
-            "1",
+            "am",
+            "start",
+            "-n",
+            "com.phonecam.companion/.MainActivity",
+            "--ei",
+            "fps",
+            str(int(self.settings.get("fps", 30))),
+            "--es",
+            "resolution",
+            str(self.settings.get("resolution", "1920x1080")),
+            "--es",
+            "facing",
+            str(self.settings.get("cameraFacing", "back")),
         ], timeout=8)
         if start.returncode == 0:
             self._companion_device = device_id

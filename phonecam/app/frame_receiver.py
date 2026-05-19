@@ -5,6 +5,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Callable
 
 from app.frame_buffer import FrameBufferWriter
+from app.frame_stats import FrameStats
+from app.frame_stream_server import FrameStreamServer
 
 
 class ReusableHttpServer(ThreadingHTTPServer):
@@ -15,6 +17,7 @@ class FrameReceiver:
     def __init__(self, on_log: Callable[[str, str], None], port: int = 4767) -> None:
         self.port = port
         self.writer = FrameBufferWriter()
+        self.stats = FrameStats()
         self.on_log = on_log
         self.frames_received = 0
         self.last_size: str | None = None
@@ -22,6 +25,7 @@ class FrameReceiver:
         self._latest_jpeg: bytes | None = None
         self._server: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
+        self._stream_server = FrameStreamServer(port + 1, self._accept_frame, on_log)
 
     def start(self) -> None:
         if self._server:
@@ -29,6 +33,7 @@ class FrameReceiver:
         self._server = ReusableHttpServer(("127.0.0.1", self.port), self._handler())
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
+        self._stream_server.start()
         self.on_log("info", f"Frame receiver listening on USB reverse port {self.port}")
 
     def stop(self) -> None:
@@ -38,6 +43,7 @@ class FrameReceiver:
         self._server.server_close()
         self._server = None
         self._thread = None
+        self._stream_server.stop()
 
     def status(self) -> dict[str, object]:
         return {
@@ -46,7 +52,24 @@ class FrameReceiver:
             "lastSize": self.last_size,
             "postUrl": f"http://127.0.0.1:{self.port}/frame",
             "streamUrl": f"http://127.0.0.1:{self.port}/stream.mjpg",
+            "framePort": self.port + 1,
+            "frameStreamListening": self._stream_server.listening(),
         }
+
+    def performance(self, target_fps: int) -> dict[str, object]:
+        return self.stats.snapshot(target_fps)
+
+    def _accept_frame(self, jpeg: bytes) -> None:
+        try:
+            width, height = self.writer.write_jpeg(jpeg)
+            self.stats.record_capture_frame(width, height)
+            self.frames_received += 1
+            self.last_size = f"{width}x{height}"
+            with self._condition:
+                self._latest_jpeg = jpeg
+                self._condition.notify_all()
+        except Exception as exc:
+            self.on_log("error", f"Frame decode failed: {exc}")
 
     def _handler(self) -> type[BaseHTTPRequestHandler]:
         receiver = self
@@ -69,13 +92,7 @@ class FrameReceiver:
                     self._send(400, b"invalid frame")
                     return
                 try:
-                    jpeg = self.rfile.read(length)
-                    width, height = receiver.writer.write_jpeg(jpeg)
-                    receiver.frames_received += 1
-                    receiver.last_size = f"{width}x{height}"
-                    with receiver._condition:
-                        receiver._latest_jpeg = jpeg
-                        receiver._condition.notify_all()
+                    receiver._accept_frame(self.rfile.read(length))
                     self._send(200, b"ok")
                 except Exception as exc:
                     receiver.on_log("error", f"Frame decode failed: {exc}")

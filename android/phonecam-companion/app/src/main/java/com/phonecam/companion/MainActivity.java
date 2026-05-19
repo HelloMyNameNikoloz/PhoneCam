@@ -24,10 +24,16 @@ public class MainActivity extends Activity {
     private CameraStreamer streamer;
     private TextView status;
     private TextView statusPill;
+    private int targetFps = 30;
+    private String resolution = "1920x1080";
+    private String facing = "back";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        targetFps = getIntent().getIntExtra("fps", 30);
+        resolution = getIntent().getStringExtra("resolution");
+        facing = getIntent().getStringExtra("facing");
         streamer = new CameraStreamer(this, this::setStatus);
         buildUi();
         requestCameraPermission();
@@ -63,7 +69,7 @@ public class MainActivity extends Activity {
         statusPill.setBackground(round(0x2010a37f, 999, 0x6610a37f));
 
         TextView title = label("Camera bridge", 22, TEXT, true);
-        TextView hint = label("Keep this app open while Windows uses PhoneCam.", 15, MUTED, false);
+        TextView hint = label((resolution == null ? "1920x1080" : resolution) + " at " + targetFps + " FPS", 15, MUTED, false);
         status = label("Connect USB and open PhoneCam on Windows.", 15, MUTED, false);
 
         LinearLayout actions = row(10);
@@ -166,7 +172,7 @@ public class MainActivity extends Activity {
 
     private void startStream() {
         try {
-            streamer.start();
+            streamer.start(targetFps, resolution, facing);
             setStatus("Starting camera");
         } catch (Exception exc) {
             setStatus(exc.getMessage());

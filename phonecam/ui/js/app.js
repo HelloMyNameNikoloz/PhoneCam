@@ -3,7 +3,7 @@ async function bootPhoneCam() {
   const settings = await window.PhoneCamApi.loadSettings();
   window.PhoneCamState.merge({ settings });
   await refreshStatus();
-  setInterval(refreshStatus, 2000);
+  setInterval(refreshStatus, 1000);
 }
 
 async function refreshStatus() {
