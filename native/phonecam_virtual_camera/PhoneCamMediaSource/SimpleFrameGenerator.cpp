@@ -2,6 +2,7 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //
 #include "pch.h"
+#include "PhoneCamDiagnostics.h"
 
 HRESULT SimpleFrameGenerator::Initialize(_In_ IMFMediaType* pMediaType)
 {
@@ -32,30 +33,49 @@ HRESULT SimpleFrameGenerator::CreateFrame(
     _In_ LONG pitch,
     _In_ ULONG rgbMask)
 {
+    LARGE_INTEGER frequency = {};
+    LARGE_INTEGER start = {};
+    LARGE_INTEGER finish = {};
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+    bool copied = false;
+    HRESULT hr = S_OK;
+
     if (m_subType == MFVideoFormat_RGB32)
     {
-        RETURN_IF_FAILED(_CreateRGB32Frame(pBuf, len, pitch, m_width, m_height, rgbMask));
+        hr = _CreateRGB32Frame(pBuf, len, pitch, m_width, m_height, rgbMask);
+        copied = SUCCEEDED(hr);
     }
     else if(m_subType == MFVideoFormat_NV12)
     {
-        bool copied = false;
-        RETURN_IF_FAILED(m_bridge.TryCopyNv12Frame(pBuf, len, pitch, m_width, m_height, &copied));
-        if (!copied)
+        hr = m_bridge.TryCopyNv12Frame(pBuf, len, pitch, m_width, m_height, &copied);
+        if (SUCCEEDED(hr) && !copied)
         {
-            RETURN_HR_IF(E_INVALIDARG, pitch <= 0);
+            hr = pitch <= 0 ? E_INVALIDARG : S_OK;
             DWORD ySize = pitch * m_height;
             DWORD uvSize = ySize / 2;
-            RETURN_HR_IF(E_UNEXPECTED, ySize + uvSize > len);
-            FillMemory(pBuf, ySize, 16);
-            FillMemory(pBuf + ySize, uvSize, 128);
+            if (SUCCEEDED(hr) && ySize + uvSize > len)
+            {
+                hr = E_UNEXPECTED;
+            }
+            if (SUCCEEDED(hr))
+            {
+                FillMemory(pBuf, ySize, 16);
+                FillMemory(pBuf + ySize, uvSize, 128);
+            }
         }
     }
     else
     {
-        return MF_E_UNSUPPORTED_FORMAT;
+        hr = MF_E_UNSUPPORTED_FORMAT;
     }
 
-    return S_OK;
+    QueryPerformanceCounter(&finish);
+    DWORD elapsedMs = frequency.QuadPart
+        ? static_cast<DWORD>((finish.QuadPart - start.QuadPart) * 1000 / frequency.QuadPart)
+        : 0;
+    PhoneCamRecordSample(m_subType, m_width, m_height, copied, elapsedMs);
+    return hr;
 }
 
 //////////////////////////////////////////////////

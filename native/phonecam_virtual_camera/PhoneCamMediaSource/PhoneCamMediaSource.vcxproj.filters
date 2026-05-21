@@ -44,6 +44,9 @@
     <ClCompile Include="PhoneCamColorConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PhoneCamDiagnostics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PhoneCamVirtualCamera.h">
@@ -65,6 +68,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PhoneCamColorConvert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhoneCamDiagnostics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,6 +32,47 @@ static BYTE BgraToV(int r, int g, int b)
     return ClampByte(((112 * r - 94 * g - 18 * b + 128) >> 8) + 128);
 }
 
+static void BgraToNv12SameSize(
+    const BYTE* source,
+    UINT32 sourceStride,
+    BYTE* target,
+    LONG targetPitch,
+    UINT32 width,
+    UINT32 height)
+{
+    BYTE* yPlane = target;
+    BYTE* uvPlane = target + targetPitch * height;
+
+    for (UINT32 y = 0; y < height; ++y)
+    {
+        const BYTE* srcRow = source + y * sourceStride;
+        BYTE* dstRow = yPlane + y * targetPitch;
+        for (UINT32 x = 0; x < width; ++x)
+        {
+            dstRow[x] = BgraToY(srcRow + x * 4);
+        }
+    }
+
+    for (UINT32 y = 0; y + 1 < height; y += 2)
+    {
+        const BYTE* row0 = source + y * sourceStride;
+        const BYTE* row1 = source + (y + 1) * sourceStride;
+        BYTE* dstRow = uvPlane + (y / 2) * targetPitch;
+        for (UINT32 x = 0; x + 1 < width; x += 2)
+        {
+            const BYTE* p0 = row0 + x * 4;
+            const BYTE* p1 = p0 + 4;
+            const BYTE* p2 = row1 + x * 4;
+            const BYTE* p3 = p2 + 4;
+            int b = (p0[0] + p1[0] + p2[0] + p3[0]) / 4;
+            int g = (p0[1] + p1[1] + p2[1] + p3[1]) / 4;
+            int r = (p0[2] + p1[2] + p2[2] + p3[2]) / 4;
+            dstRow[x] = BgraToU(r, g, b);
+            dstRow[x + 1] = BgraToV(r, g, b);
+        }
+    }
+}
+
 void CopyOrScaleBgraToNv12(
     const BYTE* source,
     UINT32 sourceWidth,
@@ -42,6 +83,12 @@ void CopyOrScaleBgraToNv12(
     UINT32 targetWidth,
     UINT32 targetHeight)
 {
+    if (sourceWidth == targetWidth && sourceHeight == targetHeight)
+    {
+        BgraToNv12SameSize(source, sourceStride, target, targetPitch, targetWidth, targetHeight);
+        return;
+    }
+
     BYTE* yPlane = target;
     BYTE* uvPlane = target + targetPitch * targetHeight;
 

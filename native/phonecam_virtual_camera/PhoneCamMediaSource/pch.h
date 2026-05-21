@@ -20,6 +20,8 @@
 #include <nserror.h>
 #include <winmeta.h>
 #include <d3d9types.h>
+#include <cstdio>
+#include <cstring>
 #include <vector>
 #include <string>
 

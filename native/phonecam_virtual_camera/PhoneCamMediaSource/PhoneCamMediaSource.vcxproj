@@ -184,6 +184,7 @@
   <ItemGroup>
     <ClCompile Include="dllMain.cpp" />
     <ClCompile Include="PhoneCamColorConvert.cpp" />
+    <ClCompile Include="PhoneCamDiagnostics.cpp" />
     <ClCompile Include="PhoneCamFrameBridge.cpp" />
     <ClCompile Include="SimpleFrameGenerator.cpp" />
     <ClCompile Include="PhoneCamVirtualCamera.cpp" />
@@ -193,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PhoneCamColorConvert.h" />
+    <ClInclude Include="PhoneCamDiagnostics.h" />
     <ClInclude Include="SimpleFrameGenerator.h" />
     <ClInclude Include="PhoneCamFrameBridge.h" />
     <ClInclude Include="PhoneCamVirtualCamera.h" />
