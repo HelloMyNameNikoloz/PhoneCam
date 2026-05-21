@@ -34,13 +34,21 @@ class FrameReceiver:
     def start(self) -> None:
         if self._server:
             return
-        self._server = ReusableHttpServer(("127.0.0.1", self.port), self._handler())
+        try:
+            self._server = ReusableHttpServer(("127.0.0.1", self.port), self._handler())
+            self._stream_server.start()
+        except OSError as exc:
+            if self._server:
+                self._server.server_close()
+            self._server = None
+            self.on_log("error", f"Frame receiver port is already in use: {exc}")
+            return
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
-        self._stopping = False
-        self._decode_thread = threading.Thread(target=self._decode_loop, daemon=True)
-        self._decode_thread.start()
-        self._stream_server.start()
+        if not self._decode_thread:
+            self._stopping = False
+            self._decode_thread = threading.Thread(target=self._decode_loop, daemon=True)
+            self._decode_thread.start()
         self.on_log("info", f"Frame receiver listening on USB reverse port {self.port}")
 
     def stop(self) -> None:

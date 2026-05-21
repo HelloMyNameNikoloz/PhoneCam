@@ -1,3 +1,7 @@
+param(
+    [switch]$Recreate
+)
+
 $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\native_camera_common.ps1"
 
@@ -17,15 +21,24 @@ Assert-Elevated "install the PhoneCam virtual camera"
 Assert-TestSigningEnabled
 
 $devgenPath = Find-WdkTool -Name "devgen.exe"
-
-Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
+$existingDevices = @(Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
     Where-Object {
         $_.FriendlyName -eq "PhoneCam" -and $_.InstanceId -like "ROOT\DEVGEN\*"
-    } |
-    ForEach-Object {
+    })
+
+if ($Recreate) {
+    $existingDevices | ForEach-Object {
         Write-Host "Removing existing PhoneCam instance: $($_.InstanceId)"
         & pnputil /remove-device $_.InstanceId
     }
+    $existingDevices = @()
+}
 
-& $devgenPath /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
+if ($existingDevices.Count -eq 0) {
+    & $devgenPath /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
+} else {
+    Write-Host "Updating existing PhoneCam instance:"
+    $existingDevices | Select-Object Status, FriendlyName, InstanceId | Format-Table -AutoSize
+}
+
 & pnputil /add-driver $inf /install

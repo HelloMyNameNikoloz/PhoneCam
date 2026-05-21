@@ -39,3 +39,7 @@ def settings_path() -> Path:
     appdata = os.environ.get("APPDATA")
     base = Path(appdata) if appdata else Path.home() / "AppData" / "Roaming"
     return base / "PhoneCam" / "settings.json"
+
+
+def app_data_dir() -> Path:
+    return settings_path().parent

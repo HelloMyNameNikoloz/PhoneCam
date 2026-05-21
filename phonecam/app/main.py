@@ -11,10 +11,15 @@ import webview
 from app.bridge import PhoneCamBridge
 from app.config import APP_NAME
 from app.paths import asset_path, ui_index
+from app.single_instance import SingleInstance
 from app.tray import TrayController
 
 
 def main() -> None:
+    instance = SingleInstance()
+    if not instance.acquire():
+        return
+
     bridge = PhoneCamBridge()
     tray: TrayController | None = None
 
