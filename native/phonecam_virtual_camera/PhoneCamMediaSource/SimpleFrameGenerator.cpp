@@ -34,14 +34,10 @@ HRESULT SimpleFrameGenerator::CreateFrame(
 {
     if (m_subType == MFVideoFormat_RGB32)
     {
-        DEBUG_MSG(L"RGB32 frames %s\n", winrt::to_hstring(MFVideoFormat_RGB32).data());
-
         RETURN_IF_FAILED(_CreateRGB32Frame(pBuf, len, pitch, m_width, m_height, rgbMask));
     }
     else if(m_subType == MFVideoFormat_NV12)
     {
-        DEBUG_MSG(L"NV12 frames %s \n", winrt::to_hstring(MFVideoFormat_NV12).data());
-
         DWORD frameBuffLen = m_width * m_height * 4;
         wil::unique_cotaskmem_ptr<BYTE[]> spBuff = wil::make_unique_cotaskmem_nothrow<BYTE[]>(frameBuffLen);
         RETURN_IF_NULL_ALLOC(spBuff.get());

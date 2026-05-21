@@ -78,10 +78,20 @@ HRESULT PhoneCamFrameBridge::ReadSharedFrame()
         return S_OK;
     }
 
-    std::vector<BYTE> frame(header.DataSize);
-    CopyMemory(frame.data(), m_frameView + sizeof(PhoneCamFrameHeader), header.DataSize);
+    if (m_frame.size() != header.DataSize)
+    {
+        m_frame.resize(header.DataSize);
+    }
+    CopyMemory(m_frame.data(), m_frameView + sizeof(PhoneCamFrameHeader), header.DataSize);
+
+    PhoneCamFrameHeader verify = {};
+    CopyMemory(&verify, m_frameView, sizeof(verify));
+    if (verify.Sequence != header.Sequence || verify.DataSize != header.DataSize)
+    {
+        return S_OK;
+    }
+
     m_header = header;
-    m_frame = std::move(frame);
     m_lastSequence = header.Sequence;
     return S_OK;
 }

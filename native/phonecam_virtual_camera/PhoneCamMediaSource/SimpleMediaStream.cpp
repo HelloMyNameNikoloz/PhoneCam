@@ -27,31 +27,28 @@ namespace winrt::WindowsSample::implementation
         m_dwStreamId = dwStreamId;
         m_allocatorUsage = allocatorUsage;
 
-        const uint32_t NUM_MEDIATYPES = 4;
+        const uint32_t NUM_MEDIATYPES = 3;
         wil::unique_cotaskmem_array_ptr<wil::com_ptr_nothrow<IMFMediaType>> mediaTypeList = wilEx::make_unique_cotaskmem_array<wil::com_ptr_nothrow<IMFMediaType>>(NUM_MEDIATYPES);
 
-        auto createType = [&](GUID subtype, UINT32 fps, UINT32 index) -> HRESULT
+        auto createType = [&](UINT32 fps, UINT32 index) -> HRESULT
         {
             wil::com_ptr_nothrow<IMFMediaType> spMediaType;
             RETURN_IF_FAILED(MFCreateMediaType(&spMediaType));
             spMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-            spMediaType->SetGUID(MF_MT_SUBTYPE, subtype);
+            spMediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
             spMediaType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
             spMediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
             MFSetAttributeSize(spMediaType.get(), MF_MT_FRAME_SIZE, NUM_IMAGE_COLS, NUM_IMAGE_ROWS);
             MFSetAttributeRatio(spMediaType.get(), MF_MT_FRAME_RATE, fps, 1);
-            UINT32 bitrate = subtype == MFVideoFormat_RGB32
-                ? NUM_IMAGE_COLS * NUM_IMAGE_ROWS * 4 * 8 * fps
-                : static_cast<UINT32>(NUM_IMAGE_COLS * 1.5 * NUM_IMAGE_ROWS * 8 * fps);
+            UINT32 bitrate = NUM_IMAGE_COLS * NUM_IMAGE_ROWS * 4 * 8 * fps;
             spMediaType->SetUINT32(MF_MT_AVG_BITRATE, bitrate);
             MFSetAttributeRatio(spMediaType.get(), MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
             mediaTypeList[index] = spMediaType.detach();
             return S_OK;
         };
-        RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, 60, 0));
-        RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, 30, 1));
-        RETURN_IF_FAILED(createType(MFVideoFormat_NV12, 60, 2));
-        RETURN_IF_FAILED(createType(MFVideoFormat_NV12, 30, 3));
+        RETURN_IF_FAILED(createType(60, 0));
+        RETURN_IF_FAILED(createType(30, 1));
+        RETURN_IF_FAILED(createType(120, 2));
 
         RETURN_IF_FAILED(MFCreateAttributes(&m_spAttributes, 10));
         RETURN_IF_FAILED(_SetStreamAttributes(m_spAttributes.get()));
