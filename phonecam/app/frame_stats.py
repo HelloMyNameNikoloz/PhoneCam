@@ -20,16 +20,22 @@ class FrameStats:
         self.height = 0
         self.dropped_frames = 0
         self._last_output_count = 0
+        self._last_duplicate_count = 0
         self._last_output_time = time.monotonic()
         self._output_fps = 0.0
+        self._native_initialized = False
+        self._native_duplicate_frames = 0
 
     def reset(self) -> None:
         self.capture_times.clear()
         self.decode_times.clear()
         self.dropped_frames = 0
         self._last_output_count = 0
+        self._last_duplicate_count = 0
         self._last_output_time = time.monotonic()
         self._output_fps = 0.0
+        self._native_initialized = False
+        self._native_duplicate_frames = 0
 
     def record_capture_frame(self) -> None:
         self.capture_times.append(time.monotonic())
@@ -50,15 +56,12 @@ class FrameStats:
         bridge_fps = self._window_fps(self.decode_times, now)
         native = self._native_stats()
         output_frames = int(native.get("outputFrames", 0))
-        elapsed = max(now - self._last_output_time, 0.001)
-        if output_frames != self._last_output_count:
-            self._output_fps = (output_frames - self._last_output_count) / elapsed
-            self._last_output_count = output_frames
-            self._last_output_time = now
+        duplicate_frames = int(native.get("duplicateFrames", 0))
+        self._update_native_rates(output_frames, duplicate_frames, now, target_fps)
         actual = min(capture_fps, bridge_fps)
         if output_frames:
             actual = min(actual, self._output_fps)
-        dropped = int(native.get("duplicateFrames", 0)) + self._capture_shortfall(now, target_fps)
+        dropped = self._native_duplicate_frames + self._capture_shortfall(now, target_fps)
         return {
             "targetFps": target_fps,
             "captureFps": round(capture_fps, 1),
@@ -69,6 +72,30 @@ class FrameStats:
             "resolution": f"{self.width}x{self.height}" if self.width else None,
             "health": self._health(actual, target_fps),
         }
+
+    def _update_native_rates(self, output_frames: int, duplicate_frames: int, now: float, target_fps: int) -> None:
+        if not output_frames:
+            return
+        if not self._native_initialized or output_frames < self._last_output_count:
+            self._last_output_count = output_frames
+            self._last_duplicate_count = duplicate_frames
+            self._last_output_time = now
+            self._output_fps = 0.0
+            self._native_initialized = True
+            return
+
+        elapsed = now - self._last_output_time
+        if elapsed < 0.25:
+            return
+        output_delta = max(0, output_frames - self._last_output_count)
+        duplicate_delta = max(0, duplicate_frames - self._last_duplicate_count)
+        delivered_delta = max(0, output_delta - duplicate_delta)
+        self._native_duplicate_frames += duplicate_delta
+        measured = delivered_delta / max(elapsed, 0.001)
+        self._output_fps = min(measured, float(max(target_fps, 1)) * 1.2)
+        self._last_output_count = output_frames
+        self._last_duplicate_count = duplicate_frames
+        self._last_output_time = now
 
     def _capture_fps(self, now: float) -> float:
         return self._window_fps(self.capture_times, now)
