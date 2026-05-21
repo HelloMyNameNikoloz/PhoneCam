@@ -92,28 +92,25 @@ window.PhoneCamRender = {
           <h2>Waiting for phone</h2>
           <p>Connect USB, authorize ADB, then open the PhoneCam Android companion.</p>
         </div>`;
-    document.querySelector("#preview-card").innerHTML = `<div class="viewer-card ${running ? "running" : ""}">${content}</div>
-    ${this.performanceCard(state)}
-    <div class="stage-toast">
-      <strong>Virtual Camera</strong>
-      <span>${this.virtualCameraMessage(state)}</span>
-      <strong class="toast-line">Frame Bridge</strong>
-      <span>${this.frameBridgeMessage(state)}</span>
-    </div>`;
+    document.querySelector("#preview-card").innerHTML = `
+      ${this.telemetryBar(state)}
+      <div class="viewer-card ${running ? "running" : ""}">${content}</div>`;
   },
 
-  performanceCard(state) {
+  telemetryBar(state) {
     const perf = state.performance || {};
     const health = perf.health || "bad";
-    const warning = health === "good" ? "" : `<p>Actual FPS is below target. Phone encode, USB transport, or PC decode is limiting the feed. Try 1080p30 or lower resolution.</p>`;
-    return `<div class="performance-card ${health}">
-      <div><strong>Target</strong><span>${perf.targetFps || state.settings.fps} FPS</span></div>
-      <div><strong>Capture</strong><span>${perf.captureFps || 0} FPS</span></div>
-      <div><strong>Bridge</strong><span>${perf.bridgeFps || 0} FPS</span></div>
-      <div><strong>Output</strong><span>${perf.outputFps || 0} FPS</span></div>
-      <div><strong>Dropped</strong><span>${perf.droppedFrames || 0}</span></div>
-      <div><strong>Latency</strong><span>${perf.latencyMs || 0} ms</span></div>
-      <div><strong>Resolution</strong><span>${perf.resolution || this.resolutionLabel(state.settings.resolution)}</span></div>
+    const warning = health === "good" ? "" : `<span class="telemetry-warning">Actual FPS is below target</span>`;
+    return `<div class="telemetry-bar ${health}">
+      <span><strong>Target</strong>${perf.targetFps || state.settings.fps} FPS</span>
+      <span><strong>Capture</strong>${perf.captureFps || 0} FPS</span>
+      <span><strong>Bridge</strong>${perf.bridgeFps || 0} FPS</span>
+      <span><strong>Output</strong>${perf.outputFps || 0} FPS</span>
+      <span><strong>Dropped</strong>${perf.droppedFrames || 0}</span>
+      <span><strong>Latency</strong>${perf.latencyMs || 0} ms</span>
+      <span><strong>Resolution</strong>${perf.resolution || this.resolutionLabel(state.settings.resolution)}</span>
+      <span><strong>Camera</strong>${this.virtualCameraMessage(state)}</span>
+      <span><strong>Frames</strong>${this.frameBridgeMessage(state)}</span>
       ${warning}
     </div>`;
   },

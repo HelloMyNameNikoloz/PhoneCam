@@ -26,7 +26,7 @@ HRESULT PhoneCamFrameBridge::TryCopyBgraFrame(
     }
 
     RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER), targetSize < targetPitch * height);
-    ScaleBgra(m_frame.data(), m_header, target, targetPitch, width, height);
+    CopyOrScaleBgra(m_frame.data(), m_header, target, targetPitch, width, height);
     bool duplicate = m_header.Sequence == m_lastDeliveredSequence;
     m_lastDeliveredSequence = m_header.Sequence;
     RecordOutput(duplicate, width, height);
@@ -115,7 +115,7 @@ UINT64 PhoneCamFrameBridge::UnixTimeNs()
     return (value.QuadPart - 116444736000000000ULL) * 100ULL;
 }
 
-void PhoneCamFrameBridge::ScaleBgra(
+void PhoneCamFrameBridge::CopyOrScaleBgra(
     const BYTE* source,
     const PhoneCamFrameHeader& header,
     BYTE* target,
@@ -123,6 +123,22 @@ void PhoneCamFrameBridge::ScaleBgra(
     UINT32 width,
     UINT32 height)
 {
+    if (header.Width == width && header.Height == height && header.Stride == static_cast<UINT32>(pitch))
+    {
+        CopyMemory(target, source, header.DataSize);
+        return;
+    }
+
+    if (header.Width == width && header.Height == height)
+    {
+        const DWORD rowBytes = width * 4;
+        for (UINT32 y = 0; y < height; ++y)
+        {
+            CopyMemory(target + y * pitch, source + y * header.Stride, rowBytes);
+        }
+        return;
+    }
+
     for (UINT32 y = 0; y < height; ++y)
     {
         UINT32 sy = y * header.Height / height;

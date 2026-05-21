@@ -36,7 +36,7 @@ private:
     HRESULT OpenMappings();
     void RecordOutput(bool duplicate, UINT32 width, UINT32 height);
     static UINT64 UnixTimeNs();
-    static void ScaleBgra(const BYTE* source, const PhoneCamFrameHeader& header, BYTE* target, LONG pitch, UINT32 width, UINT32 height);
+    static void CopyOrScaleBgra(const BYTE* source, const PhoneCamFrameHeader& header, BYTE* target, LONG pitch, UINT32 width, UINT32 height);
 
     std::vector<BYTE> m_frame;
     PhoneCamFrameHeader m_header = {};
