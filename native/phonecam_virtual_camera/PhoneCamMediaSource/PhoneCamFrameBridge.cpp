@@ -6,6 +6,8 @@ static constexpr UINT32 PHONECAM_STATS_MAGIC = 0x50435354;
 static constexpr UINT32 PHONECAM_FRAME_VERSION = 1;
 static constexpr UINT32 PHONECAM_FRAME_FORMAT_BGRA = 1;
 static constexpr DWORD PHONECAM_BUFFER_SIZE = sizeof(PhoneCamFrameHeader) + 3840 * 2160 * 4;
+static constexpr wchar_t PHONECAM_FRAME_PATH[] = L"C:\\ProgramData\\PhoneCam\\framebuffer.bin";
+static constexpr wchar_t PHONECAM_STATS_PATH[] = L"C:\\ProgramData\\PhoneCam\\native_stats.bin";
 
 HRESULT PhoneCamFrameBridge::TryCopyBgraFrame(
     BYTE* target,
@@ -27,7 +29,7 @@ HRESULT PhoneCamFrameBridge::TryCopyBgraFrame(
     }
 
     RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER), targetSize < targetPitch * height);
-    CopyOrScaleBgra(m_frame.data(), m_header, target, targetPitch, width, height);
+    CopyOrScaleBgra(m_frame.data(), m_header.Width, m_header.Height, m_header.Stride, m_header.DataSize, target, targetPitch, width, height);
     bool duplicate = m_header.Sequence == m_lastDeliveredSequence;
     m_lastDeliveredSequence = m_header.Sequence;
     RecordOutput(duplicate, width, height);
@@ -69,7 +71,19 @@ HRESULT PhoneCamFrameBridge::OpenMappings()
 {
     if (!m_frameMapping)
     {
-        m_frameMapping.reset(OpenFileMappingW(FILE_MAP_READ, FALSE, L"PhoneCamFrameBuffer"));
+        CreateDirectoryW(L"C:\\ProgramData\\PhoneCam", nullptr);
+        m_frameFile.reset(CreateFileW(
+            PHONECAM_FRAME_PATH,
+            GENERIC_READ,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr));
+        if (m_frameFile)
+        {
+            m_frameMapping.reset(CreateFileMappingW(m_frameFile.get(), nullptr, PAGE_READONLY, 0, PHONECAM_BUFFER_SIZE, nullptr));
+        }
         if (m_frameMapping)
         {
             m_frameView = static_cast<BYTE*>(MapViewOfFile(m_frameMapping.get(), FILE_MAP_READ, 0, 0, PHONECAM_BUFFER_SIZE));
@@ -77,7 +91,22 @@ HRESULT PhoneCamFrameBridge::OpenMappings()
     }
     if (!m_statsMapping)
     {
-        m_statsMapping.reset(CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, sizeof(PhoneCamNativeStats), L"PhoneCamStats"));
+        m_statsFile.reset(CreateFileW(
+            PHONECAM_STATS_PATH,
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr,
+            OPEN_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr));
+        if (m_statsFile)
+        {
+            LARGE_INTEGER size = {};
+            size.QuadPart = sizeof(PhoneCamNativeStats);
+            SetFilePointerEx(m_statsFile.get(), size, nullptr, FILE_BEGIN);
+            SetEndOfFile(m_statsFile.get());
+            m_statsMapping.reset(CreateFileMappingW(m_statsFile.get(), nullptr, PAGE_READWRITE, 0, sizeof(PhoneCamNativeStats), nullptr));
+        }
         if (m_statsMapping)
         {
             m_stats = static_cast<PhoneCamNativeStats*>(MapViewOfFile(m_statsMapping.get(), FILE_MAP_WRITE, 0, 0, sizeof(PhoneCamNativeStats)));
@@ -154,41 +183,4 @@ UINT64 PhoneCamFrameBridge::UnixTimeNs()
     value.LowPart = ft.dwLowDateTime;
     value.HighPart = ft.dwHighDateTime;
     return (value.QuadPart - 116444736000000000ULL) * 100ULL;
-}
-
-void PhoneCamFrameBridge::CopyOrScaleBgra(
-    const BYTE* source,
-    const PhoneCamFrameHeader& header,
-    BYTE* target,
-    LONG pitch,
-    UINT32 width,
-    UINT32 height)
-{
-    if (header.Width == width && header.Height == height && header.Stride == static_cast<UINT32>(pitch))
-    {
-        CopyMemory(target, source, header.DataSize);
-        return;
-    }
-
-    if (header.Width == width && header.Height == height)
-    {
-        const DWORD rowBytes = width * 4;
-        for (UINT32 y = 0; y < height; ++y)
-        {
-            CopyMemory(target + y * pitch, source + y * header.Stride, rowBytes);
-        }
-        return;
-    }
-
-    for (UINT32 y = 0; y < height; ++y)
-    {
-        UINT32 sy = y * header.Height / height;
-        const BYTE* srcRow = source + sy * header.Stride;
-        BYTE* dstRow = target + y * pitch;
-        for (UINT32 x = 0; x < width; ++x)
-        {
-            UINT32 sx = x * header.Width / width;
-            CopyMemory(dstRow + x * 4, srcRow + sx * 4, 4);
-        }
-    }
 }

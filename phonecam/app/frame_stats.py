@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import mmap
+import os
 import struct
 import time
 from collections import deque
+from pathlib import Path
 from typing import Deque
 
-STATS_NAME = "PhoneCamStats"
 STATS_MAGIC = 0x50435354
 STATS = struct.Struct("<IIQQQQQII")
 
@@ -98,11 +99,19 @@ class FrameStats:
 
     @staticmethod
     def _native_stats() -> dict[str, int]:
-        try:
-            with mmap.mmap(-1, STATS.size, tagname=STATS_NAME, access=mmap.ACCESS_READ) as mm:
-                values = STATS.unpack(mm[: STATS.size])
-        except Exception:
+        path = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "PhoneCam" / "native_stats.bin"
+        if not path.exists() or path.stat().st_size < STATS.size:
             return {}
+        try:
+            with path.open("rb") as file:
+                with mmap.mmap(file.fileno(), STATS.size, access=mmap.ACCESS_READ) as mm:
+                    values = STATS.unpack(mm[: STATS.size])
+        except Exception:
+            try:
+                with path.open("rb") as file:
+                    values = STATS.unpack(file.read(STATS.size))
+            except Exception:
+                return {}
         if values[0] != STATS_MAGIC:
             return {}
         return {

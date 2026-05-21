@@ -63,6 +63,13 @@ function Start-CameraFrameServer {
     }
 }
 
+function Initialize-PhoneCamDataDirectory {
+    $dataDir = Join-Path $env:ProgramData "PhoneCam"
+    New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+    & icacls $dataDir /grant "*S-1-5-32-545:(OI)(CI)M" "*S-1-5-19:(OI)(CI)RX" "*S-1-5-20:(OI)(CI)RX" | Out-Null
+    return $dataDir
+}
+
 $package = Get-NativeCameraPackagePath
 $inf = Join-Path $package "PhoneCamCameraDriver.inf"
 $catalog = Join-Path $package "phonecamcameradriver.cat"
@@ -74,14 +81,17 @@ Assert-CatalogSigned -CatalogPath $catalog
 Assert-Elevated "install the PhoneCam virtual camera"
 Assert-TestSigningEnabled
 
-$consumers = @(Get-Process obs64, obs32, obs, WindowsCamera, Video.UI -ErrorAction SilentlyContinue)
+$consumers = @(Get-Process PhoneCam, obs64, obs32, obs, WindowsCamera, Video.UI -ErrorAction SilentlyContinue)
 if ($consumers.Count -gt 0) {
     $names = ($consumers | ForEach-Object { "$($_.ProcessName) (PID $($_.Id))" }) -join ", "
     throw "Close camera apps before installing PhoneCam updates. Running processes: $names"
 }
 
-$nativeLog = Join-Path $env:ProgramData "PhoneCam\native_camera.log"
+$dataDir = Initialize-PhoneCamDataDirectory
+$nativeLog = Join-Path $dataDir "native_camera.log"
 Remove-Item $nativeLog -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $dataDir "native_stats.bin") -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $dataDir "framebuffer.bin") -Force -ErrorAction SilentlyContinue
 
 Stop-CameraFrameServer
 if (-not $KeepDevice) {

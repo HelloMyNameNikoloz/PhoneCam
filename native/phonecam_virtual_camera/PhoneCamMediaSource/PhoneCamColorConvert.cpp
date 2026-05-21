@@ -73,6 +73,46 @@ static void BgraToNv12SameSize(
     }
 }
 
+void CopyOrScaleBgra(
+    const BYTE* source,
+    UINT32 sourceWidth,
+    UINT32 sourceHeight,
+    UINT32 sourceStride,
+    UINT32 sourceDataSize,
+    BYTE* target,
+    LONG targetPitch,
+    UINT32 targetWidth,
+    UINT32 targetHeight)
+{
+    if (sourceWidth == targetWidth && sourceHeight == targetHeight && sourceStride == static_cast<UINT32>(targetPitch))
+    {
+        CopyMemory(target, source, sourceDataSize);
+        return;
+    }
+
+    if (sourceWidth == targetWidth && sourceHeight == targetHeight)
+    {
+        const DWORD rowBytes = targetWidth * 4;
+        for (UINT32 y = 0; y < targetHeight; ++y)
+        {
+            CopyMemory(target + y * targetPitch, source + y * sourceStride, rowBytes);
+        }
+        return;
+    }
+
+    for (UINT32 y = 0; y < targetHeight; ++y)
+    {
+        UINT32 sy = y * sourceHeight / targetHeight;
+        const BYTE* srcRow = source + sy * sourceStride;
+        BYTE* dstRow = target + y * targetPitch;
+        for (UINT32 x = 0; x < targetWidth; ++x)
+        {
+            UINT32 sx = x * sourceWidth / targetWidth;
+            CopyMemory(dstRow + x * 4, srcRow + sx * 4, 4);
+        }
+    }
+}
+
 void CopyOrScaleBgraToNv12(
     const BYTE* source,
     UINT32 sourceWidth,

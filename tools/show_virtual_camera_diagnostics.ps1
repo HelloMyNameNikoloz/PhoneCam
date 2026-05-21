@@ -29,6 +29,29 @@ if (Test-Path $nativeLog) {
     Write-Host "No native log yet: $nativeLog"
 }
 
+$framePath = Join-Path $env:ProgramData "PhoneCam\framebuffer.bin"
+if (Test-Path $framePath) {
+    $stream = [IO.File]::Open($framePath, "Open", "Read", "ReadWrite")
+    try {
+        $bytes = New-Object byte[] 40
+        [void]$stream.Read($bytes, 0, $bytes.Length)
+        $magic = [BitConverter]::ToUInt32($bytes, 0)
+        $width = [BitConverter]::ToUInt32($bytes, 8)
+        $height = [BitConverter]::ToUInt32($bytes, 12)
+        $sequence = [BitConverter]::ToUInt32($bytes, 28)
+        Write-Host ""
+        Write-Host ("Frame header: magic=0x{0:X8} size={1}x{2} sequence={3}" -f $magic, $width, $height, $sequence)
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+$statsPath = Join-Path $env:ProgramData "PhoneCam\native_stats.bin"
+if (Test-Path $statsPath) {
+    Write-Host ""
+    Write-Host "Native stats file: $statsPath ($((Get-Item $statsPath).Length) bytes)"
+}
+
 $obsLogDir = Join-Path $env:APPDATA "obs-studio\logs"
 if (Test-Path $obsLogDir) {
     $latestObsLog = Get-ChildItem $obsLogDir -Filter *.txt |

@@ -37,12 +37,13 @@ private:
     HRESULT OpenMappings();
     void RecordOutput(bool duplicate, UINT32 width, UINT32 height);
     static UINT64 UnixTimeNs();
-    static void CopyOrScaleBgra(const BYTE* source, const PhoneCamFrameHeader& header, BYTE* target, LONG pitch, UINT32 width, UINT32 height);
 
     std::vector<BYTE> m_frame;
     PhoneCamFrameHeader m_header = {};
     UINT32 m_lastSequence = 0;
     UINT32 m_lastDeliveredSequence = 0;
+    wil::unique_handle m_frameFile;
+    wil::unique_handle m_statsFile;
     wil::unique_handle m_frameMapping;
     wil::unique_handle m_statsMapping;
     BYTE* m_frameView = nullptr;
