@@ -30,6 +30,7 @@ class PhoneCamFrameBridge
 {
 public:
     HRESULT TryCopyBgraFrame(BYTE* target, DWORD targetSize, LONG targetPitch, UINT32 width, UINT32 height, bool* copied);
+    HRESULT TryCopyNv12Frame(BYTE* target, DWORD targetSize, LONG targetPitch, UINT32 width, UINT32 height, bool* copied);
 
 private:
     HRESULT ReadSharedFrame();

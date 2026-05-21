@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "PhoneCamColorConvert.h"
 
 static constexpr UINT32 PHONECAM_FRAME_MAGIC = 0x50434642;
 static constexpr UINT32 PHONECAM_STATS_MAGIC = 0x50435354;
@@ -27,6 +28,36 @@ HRESULT PhoneCamFrameBridge::TryCopyBgraFrame(
 
     RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER), targetSize < targetPitch * height);
     CopyOrScaleBgra(m_frame.data(), m_header, target, targetPitch, width, height);
+    bool duplicate = m_header.Sequence == m_lastDeliveredSequence;
+    m_lastDeliveredSequence = m_header.Sequence;
+    RecordOutput(duplicate, width, height);
+    *copied = true;
+    return S_OK;
+}
+
+HRESULT PhoneCamFrameBridge::TryCopyNv12Frame(
+    BYTE* target,
+    DWORD targetSize,
+    LONG targetPitch,
+    UINT32 width,
+    UINT32 height,
+    bool* copied)
+{
+    RETURN_HR_IF_NULL(E_POINTER, target);
+    RETURN_HR_IF_NULL(E_POINTER, copied);
+    *copied = false;
+
+    RETURN_IF_FAILED(ReadSharedFrame());
+    if (m_frame.empty() || m_header.Width == 0 || m_header.Height == 0)
+    {
+        RecordOutput(true, width, height);
+        return S_OK;
+    }
+
+    RETURN_HR_IF(E_INVALIDARG, targetPitch <= 0 || height < 2);
+    DWORD required = static_cast<DWORD>(targetPitch) * height * 3 / 2;
+    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER), targetSize < required);
+    CopyOrScaleBgraToNv12(m_frame.data(), m_header.Width, m_header.Height, m_header.Stride, target, targetPitch, width, height);
     bool duplicate = m_header.Sequence == m_lastDeliveredSequence;
     m_lastDeliveredSequence = m_header.Sequence;
     RecordOutput(duplicate, width, height);

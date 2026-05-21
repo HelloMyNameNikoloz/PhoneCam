@@ -38,12 +38,17 @@ HRESULT SimpleFrameGenerator::CreateFrame(
     }
     else if(m_subType == MFVideoFormat_NV12)
     {
-        DWORD frameBuffLen = m_width * m_height * 4;
-        wil::unique_cotaskmem_ptr<BYTE[]> spBuff = wil::make_unique_cotaskmem_nothrow<BYTE[]>(frameBuffLen);
-        RETURN_IF_NULL_ALLOC(spBuff.get());
-
-        RETURN_IF_FAILED(_CreateRGB32Frame(spBuff.get(), frameBuffLen, m_width * 4, m_width, m_height, rgbMask));
-        RETURN_IF_FAILED(RGB32ToNV12Frame(spBuff.get(), frameBuffLen, m_width * 4, m_width, m_height, pBuf, len, pitch));
+        bool copied = false;
+        RETURN_IF_FAILED(m_bridge.TryCopyNv12Frame(pBuf, len, pitch, m_width, m_height, &copied));
+        if (!copied)
+        {
+            RETURN_HR_IF(E_INVALIDARG, pitch <= 0);
+            DWORD ySize = pitch * m_height;
+            DWORD uvSize = ySize / 2;
+            RETURN_HR_IF(E_UNEXPECTED, ySize + uvSize > len);
+            FillMemory(pBuf, ySize, 16);
+            FillMemory(pBuf + ySize, uvSize, 128);
+        }
     }
     else
     {

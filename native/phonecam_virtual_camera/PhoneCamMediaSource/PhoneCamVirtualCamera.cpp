@@ -29,7 +29,7 @@ namespace winrt::WindowsSample::implementation
             RETURN_IF_FAILED(m_streamList[i]->GetStreamDescriptor(&streamDescriptorList[i]));
         }
 
-        RETURN_IF_FAILED(MFCreatePresentationDescriptor(m_streamList.size(), streamDescriptorList.get(), &m_spPresentationDescriptor));
+        RETURN_IF_FAILED(MFCreatePresentationDescriptor(static_cast<DWORD>(m_streamList.size()), streamDescriptorList.get(), &m_spPresentationDescriptor));
 
         m_sourceState = SourceState::Stopped;
 

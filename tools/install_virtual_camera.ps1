@@ -20,6 +20,12 @@ Assert-CatalogSigned -CatalogPath $catalog
 Assert-Elevated "install the PhoneCam virtual camera"
 Assert-TestSigningEnabled
 
+$obsProcesses = @(Get-Process obs64, obs32, obs -ErrorAction SilentlyContinue)
+if ($obsProcesses.Count -gt 0) {
+    $names = ($obsProcesses | ForEach-Object { "$($_.ProcessName) (PID $($_.Id))" }) -join ", "
+    throw "Close OBS before installing PhoneCam virtual camera updates. Running OBS processes: $names"
+}
+
 $devgenPath = Find-WdkTool -Name "devgen.exe"
 $existingDevices = @(Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
     Where-Object {
