@@ -1,50 +1,101 @@
 param(
-    [switch]$Recreate
+    [switch]$KeepDevice
 )
 
 $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\native_camera_common.ps1"
 
+function Get-PhoneCamDriverPackages {
+    $packages = @()
+    $current = @{}
+    foreach ($line in (& pnputil /enum-drivers /class Camera)) {
+        if ($line -match "^\s*$") {
+            if (Test-PhoneCamPackage $current) { $packages += $current }
+            $current = @{}
+            continue
+        }
+        if ($line -match "^\s*Published Name:\s*(.+)$") { $current.PublishedName = $Matches[1].Trim() }
+        if ($line -match "^\s*Original Name:\s*(.+)$") { $current.OriginalName = $Matches[1].Trim() }
+        if ($line -match "^\s*Provider Name:\s*(.+)$") { $current.ProviderName = $Matches[1].Trim() }
+    }
+    if (Test-PhoneCamPackage $current) { $packages += $current }
+    return $packages
+}
+
+function Test-PhoneCamPackage($package) {
+    return $package.PublishedName -and
+        $package.OriginalName -eq "phonecamcameradriver.inf" -and
+        $package.ProviderName -eq "PhoneCam"
+}
+
+function Remove-PhoneCamDevices {
+    Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
+        Where-Object { $_.FriendlyName -eq "PhoneCam" -and $_.InstanceId -like "ROOT\DEVGEN\*" } |
+        ForEach-Object {
+            Write-Host "Removing PhoneCam device: $($_.InstanceId)"
+            & pnputil /remove-device $_.InstanceId
+        }
+}
+
+function Remove-PhoneCamDriverPackages {
+    foreach ($driver in Get-PhoneCamDriverPackages) {
+        Write-Host "Deleting old PhoneCam driver package: $($driver.PublishedName)"
+        & pnputil /delete-driver $driver.PublishedName /uninstall /force
+    }
+}
+
+function Stop-CameraFrameServer {
+    foreach ($serviceName in @("FrameServer", "FrameServerMonitor")) {
+        $service = Get-Service $serviceName -ErrorAction SilentlyContinue
+        if ($service -and $service.Status -eq "Running") {
+            Write-Host "Stopping $serviceName"
+            Stop-Service $serviceName -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Start-CameraFrameServer {
+    foreach ($serviceName in @("FrameServer", "FrameServerMonitor")) {
+        $service = Get-Service $serviceName -ErrorAction SilentlyContinue
+        if ($service -and $service.Status -ne "Running") {
+            Start-Service $serviceName -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 $package = Get-NativeCameraPackagePath
 $inf = Join-Path $package "PhoneCamCameraDriver.inf"
 $catalog = Join-Path $package "phonecamcameradriver.cat"
 
-if (-not (Test-Path $inf)) {
-    throw "Driver package not found. Run tools\build_native_camera.ps1 first."
-}
-if (-not (Test-Path $catalog)) {
-    throw "Driver catalog not found. Run tools\build_native_camera.ps1 first."
-}
+if (-not (Test-Path $inf)) { throw "Driver package not found. Run tools\build_native_camera.ps1 first." }
+if (-not (Test-Path $catalog)) { throw "Driver catalog not found. Run tools\build_native_camera.ps1 first." }
 
 Assert-CatalogSigned -CatalogPath $catalog
 Assert-Elevated "install the PhoneCam virtual camera"
 Assert-TestSigningEnabled
 
-$obsProcesses = @(Get-Process obs64, obs32, obs -ErrorAction SilentlyContinue)
-if ($obsProcesses.Count -gt 0) {
-    $names = ($obsProcesses | ForEach-Object { "$($_.ProcessName) (PID $($_.Id))" }) -join ", "
-    throw "Close OBS before installing PhoneCam virtual camera updates. Running OBS processes: $names"
+$consumers = @(Get-Process obs64, obs32, obs, WindowsCamera, Video.UI -ErrorAction SilentlyContinue)
+if ($consumers.Count -gt 0) {
+    $names = ($consumers | ForEach-Object { "$($_.ProcessName) (PID $($_.Id))" }) -join ", "
+    throw "Close camera apps before installing PhoneCam updates. Running processes: $names"
 }
+
+$nativeLog = Join-Path $env:ProgramData "PhoneCam\native_camera.log"
+Remove-Item $nativeLog -Force -ErrorAction SilentlyContinue
+
+Stop-CameraFrameServer
+if (-not $KeepDevice) {
+    Remove-PhoneCamDevices
+}
+Remove-PhoneCamDriverPackages
 
 $devgenPath = Find-WdkTool -Name "devgen.exe"
-$existingDevices = @(Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
-    Where-Object {
-        $_.FriendlyName -eq "PhoneCam" -and $_.InstanceId -like "ROOT\DEVGEN\*"
-    })
-
-if ($Recreate) {
-    $existingDevices | ForEach-Object {
-        Write-Host "Removing existing PhoneCam instance: $($_.InstanceId)"
-        & pnputil /remove-device $_.InstanceId
-    }
-    $existingDevices = @()
-}
-
-if ($existingDevices.Count -eq 0) {
+if (-not $KeepDevice) {
     & $devgenPath /add /bus ROOT /hardwareid root\PhoneCamVirtualCamera
-} else {
-    Write-Host "Updating existing PhoneCam instance:"
-    $existingDevices | Select-Object Status, FriendlyName, InstanceId | Format-Table -AutoSize
 }
 
 & pnputil /add-driver $inf /install
+Start-CameraFrameServer
+
+Write-Host "Installed PhoneCam driver packages:"
+Get-PhoneCamDriverPackages | Format-Table -AutoSize

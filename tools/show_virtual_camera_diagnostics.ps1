@@ -7,6 +7,14 @@ Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
     Format-List Status, FriendlyName, InstanceId
 
 Write-Host ""
+Write-Host "PhoneCam driver packages:"
+pnputil /enum-drivers /class Camera |
+    Select-String -Pattern "Published Name|Original Name|Provider Name|Signer Name" -Context 0, 0 |
+    Where-Object {
+        $_.Line -match "phonecamcameradriver|PhoneCam|Published Name|Signer Name"
+    }
+
+Write-Host ""
 Write-Host "Frame ports:"
 Get-NetTCPConnection -LocalPort 4767, 4768 -ErrorAction SilentlyContinue |
     Select-Object LocalPort, State, OwningProcess,
