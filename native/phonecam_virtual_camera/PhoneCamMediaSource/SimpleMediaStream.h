@@ -46,6 +46,7 @@ namespace winrt::WindowsSample::implementation
         HRESULT _CheckShutdownRequiresLock();
         HRESULT _SetStreamAttributes(IMFAttributes* pAttributeStore);
         HRESULT _SetStreamDescriptorAttributes(IMFAttributes* pAttributeStore);
+        LONGLONG _NextSampleTimeRequiresLock();
 
     private:
         winrt::slim_mutex  m_Lock;
@@ -61,6 +62,7 @@ namespace winrt::WindowsSample::implementation
         MF_STREAM_STATE m_streamState = MF_STREAM_STATE_STOPPED;
         ULONG m_rgbMask = KSPROPERTY_PhoneCamVirtualCamera_CUSTOMCONTROL_COLORMODE_BLUE;
         LONGLONG m_sampleDuration = 333333;
+        LONGLONG m_nextSampleTime = 0;
 
         DWORD m_dwStreamId;
         MFSampleAllocatorUsage m_allocatorUsage;

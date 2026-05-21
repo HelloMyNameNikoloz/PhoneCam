@@ -8,6 +8,7 @@ from app.config import DEFAULT_SETTINGS
 from app.device_detector import DeviceDetector
 from app.frame_receiver import FrameReceiver
 from app.logger import MemoryLogger
+from app.native_settings import write_native_settings
 from app.paths import adb_path, companion_apk_path, settings_path
 from app.process_utils import run_capture
 from app.virtual_camera_status import is_phonecam_installed
@@ -19,6 +20,7 @@ class PhoneCamBridge:
         self.detector = DeviceDetector(adb_path())
         self.receiver = FrameReceiver(self._receiver_log)
         self.settings = self.load_settings()
+        write_native_settings(self.settings)
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
         self._reverse_device: str | None = None
@@ -58,6 +60,7 @@ class PhoneCamBridge:
     def save_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **self.settings, **settings}
         self.settings = self._sanitize_settings(merged)
+        write_native_settings(self.settings)
         target = settings_path()
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(self.settings, indent=2), encoding="utf-8")

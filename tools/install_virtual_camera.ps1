@@ -92,6 +92,7 @@ $nativeLog = Join-Path $dataDir "native_camera.log"
 Remove-Item $nativeLog -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $dataDir "native_stats.bin") -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $dataDir "framebuffer.bin") -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $dataDir "native_settings.txt") -Force -ErrorAction SilentlyContinue
 
 Stop-CameraFrameServer
 if (-not $KeepDevice) {

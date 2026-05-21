@@ -3,6 +3,7 @@
 //
 
 #include "pch.h"
+#include "PhoneCamSettings.h"
 
 #define NUM_IMAGE_ROWS 1080
 #define NUM_IMAGE_COLS 1920
@@ -27,7 +28,7 @@ namespace winrt::WindowsSample::implementation
         m_dwStreamId = dwStreamId;
         m_allocatorUsage = allocatorUsage;
 
-        const uint32_t NUM_MEDIATYPES = 6;
+        const uint32_t NUM_MEDIATYPES = 8;
         wil::unique_cotaskmem_array_ptr<wil::com_ptr_nothrow<IMFMediaType>> mediaTypeList = wilEx::make_unique_cotaskmem_array<wil::com_ptr_nothrow<IMFMediaType>>(NUM_MEDIATYPES);
 
         auto createType = [&](GUID subtype, UINT32 fps, UINT32 index) -> HRESULT
@@ -48,12 +49,26 @@ namespace winrt::WindowsSample::implementation
             mediaTypeList[index] = spMediaType.detach();
             return S_OK;
         };
-        RETURN_IF_FAILED(createType(MFVideoFormat_NV12, 30, 0));
-        RETURN_IF_FAILED(createType(MFVideoFormat_NV12, 60, 1));
-        RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, 30, 2));
-        RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, 60, 3));
-        RETURN_IF_FAILED(createType(MFVideoFormat_NV12, 120, 4));
-        RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, 120, 5));
+        UINT32 index = 0;
+        UINT32 preferredFps = PhoneCamReadTargetFps();
+        auto addFps = [&](UINT32 fps) -> HRESULT
+        {
+            if (index >= NUM_MEDIATYPES)
+            {
+                return S_OK;
+            }
+            RETURN_IF_FAILED(createType(MFVideoFormat_NV12, fps, index++));
+            RETURN_IF_FAILED(createType(MFVideoFormat_RGB32, fps, index++));
+            return S_OK;
+        };
+        RETURN_IF_FAILED(addFps(preferredFps));
+        for (UINT32 fps : { 30u, 60u, 120u, 24u })
+        {
+            if (fps != preferredFps)
+            {
+                RETURN_IF_FAILED(addFps(fps));
+            }
+        }
 
         RETURN_IF_FAILED(MFCreateAttributes(&m_spAttributes, 10));
         RETURN_IF_FAILED(_SetStreamAttributes(m_spAttributes.get()));
@@ -195,6 +210,7 @@ namespace winrt::WindowsSample::implementation
             RETURN_HR_MSG(MF_E_INVALIDREQUEST, "Stream is not in running state, state:%d", m_streamState);
         }
 
+        LONGLONG sampleTime = _NextSampleTimeRequiresLock();
         RETURN_IF_FAILED(m_spSampleAllocator->AllocateSample(&sample));
         RETURN_IF_FAILED(sample->GetBufferByIndex(0, &outputBuffer));
         RETURN_IF_FAILED(outputBuffer->QueryInterface(IID_PPV_ARGS(&buffer2D)));
@@ -208,7 +224,7 @@ namespace winrt::WindowsSample::implementation
         RETURN_IF_FAILED(m_spFrameGenerator->CreateFrame(pbuf, bufferLength, pitch, m_rgbMask));
         RETURN_IF_FAILED(buffer2D->Unlock2D());
 
-        RETURN_IF_FAILED(sample->SetSampleTime(MFGetSystemTime()));
+        RETURN_IF_FAILED(sample->SetSampleTime(sampleTime));
         RETURN_IF_FAILED(sample->SetSampleDuration(m_sampleDuration));
         if (pToken != nullptr)
         {
@@ -293,6 +309,7 @@ namespace winrt::WindowsSample::implementation
         UINT32 fpsDenominator = 1;
         MFGetAttributeRatio(spMediaType.get(), MF_MT_FRAME_RATE, &fpsNumerator, &fpsDenominator);
         m_sampleDuration = fpsNumerator ? (10000000LL * fpsDenominator / fpsNumerator) : 333333;
+        m_nextSampleTime = 0;
 
         DEBUG_MSG(L"Initialize sample allocator for mediatype: %s, %dx%d ", winrt::to_hstring(subType).data(), width, height);
         RETURN_IF_FAILED(m_spSampleAllocator->InitializeSampleAllocator(10, spMediaType.get()));
@@ -351,6 +368,27 @@ namespace winrt::WindowsSample::implementation
         m_spSampleAllocator = pAllocator;
 
         return S_OK;
+    }
+
+    LONGLONG SimpleMediaStream::_NextSampleTimeRequiresLock()
+    {
+        LONGLONG now = MFGetSystemTime();
+        if (m_nextSampleTime == 0 || now > m_nextSampleTime + m_sampleDuration * 2)
+        {
+            m_nextSampleTime = now;
+        }
+        if (m_nextSampleTime > now)
+        {
+            LONGLONG waitMs = (m_nextSampleTime - now) / 10000;
+            if (waitMs > 0)
+            {
+                Sleep(static_cast<DWORD>(waitMs > 100 ? 100 : waitMs));
+                now = MFGetSystemTime();
+            }
+        }
+        LONGLONG sampleTime = m_nextSampleTime > now ? m_nextSampleTime : now;
+        m_nextSampleTime = sampleTime + m_sampleDuration;
+        return sampleTime;
     }
 
     

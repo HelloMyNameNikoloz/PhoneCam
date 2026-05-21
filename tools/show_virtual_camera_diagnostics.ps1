@@ -52,6 +52,13 @@ if (Test-Path $statsPath) {
     Write-Host "Native stats file: $statsPath ($((Get-Item $statsPath).Length) bytes)"
 }
 
+$settingsPath = Join-Path $env:ProgramData "PhoneCam\native_settings.txt"
+if (Test-Path $settingsPath) {
+    Write-Host ""
+    Write-Host "Native settings:"
+    Get-Content $settingsPath
+}
+
 $obsLogDir = Join-Path $env:APPDATA "obs-studio\logs"
 if (Test-Path $obsLogDir) {
     $latestObsLog = Get-ChildItem $obsLogDir -Filter *.txt |
