@@ -7,6 +7,7 @@ from pathlib import Path
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    repo = root.parent
     icon = root / "assets" / "icon.ico"
     companion = root / "assets" / "PhoneCamCompanion.apk"
     add_sep = ";"
@@ -28,6 +29,14 @@ def main() -> int:
         f"{root / 'assets'}{add_sep}assets",
         "--add-data",
         f"{root / 'bin'}{add_sep}bin",
+        "--add-data",
+        f"{repo / 'tools' / 'repair_virtual_camera.ps1'}{add_sep}tools",
+        "--add-data",
+        f"{repo / 'tools' / 'install_virtual_camera.ps1'}{add_sep}tools",
+        "--add-data",
+        f"{repo / 'tools' / 'check_virtual_camera.ps1'}{add_sep}tools",
+        "--add-data",
+        f"{repo / 'tools' / 'native_camera_common.ps1'}{add_sep}tools",
         str(root / "app" / "main.py"),
     ]
     if icon.exists():

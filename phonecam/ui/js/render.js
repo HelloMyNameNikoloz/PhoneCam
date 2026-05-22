@@ -149,9 +149,13 @@ window.PhoneCamRender = {
   },
 
   virtualCameraMessage(state) {
-    return state.virtualCameraInstalled
-      ? "PhoneCam is registered as a Windows camera device."
-      : "Run the native build, sign, and install scripts so apps can select PhoneCam.";
+    const messages = {
+      missing: "PhoneCam camera device is not installed.",
+      no_frames: "PhoneCam is installed; waiting for Android frames.",
+      active: "PhoneCam is registered and receiving frames.",
+      error: "PhoneCam camera registration needs attention.",
+    };
+    return messages[state.virtualCameraStatus] || messages.missing;
   },
 
   frameBridgeMessage(state) {

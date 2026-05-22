@@ -78,15 +78,20 @@
         </section>
 
         <section class="side-panel" data-panel-view="setup">
-          <h2>Connect phone</h2>
+          <h2>First run setup</h2>
           <ol class="setup-list">
-            <li>Install the native PhoneCam camera package.</li>
-            <li>Enable USB Debugging and connect the phone.</li>
-            <li>Accept the Android debugging prompt.</li>
-            <li>PhoneCam installs and starts the Android bridge automatically.</li>
-            <li>Select PhoneCam in the target app camera dropdown.</li>
+            <li>Install or repair the PhoneCam camera device.</li>
+            <li>Enable Developer Options and USB Debugging on Android.</li>
+            <li>Connect the phone with USB and accept the debugging prompt.</li>
+            <li>Allow camera permission in the PhoneCam Android companion.</li>
+            <li>Confirm the preview is live, then select PhoneCam in OBS or your video app.</li>
           </ol>
           <div id="setup-message" class="notice"></div>
+          <button id="repair-camera" class="button" type="button">Repair PhoneCam Camera</button>
+          <div class="notice">
+            PhoneCam is local USB only by default. It does not use cloud services,
+            save recordings, or collect telemetry.
+          </div>
         </section>
 
         <section class="side-panel" data-panel-view="logs">
@@ -97,6 +102,7 @@
           <h2>PhoneCam</h2>
           <p>PhoneCam bridges Android camera frames into a registered Windows camera device.</p>
           <p class="muted">Close the PhoneCam control window to keep it running in the system tray. Quit from the tray menu when finished.</p>
+          <p class="muted">Open source under GPLv3. No watermark, no account, no subscription.</p>
         </section>
       </aside>
 

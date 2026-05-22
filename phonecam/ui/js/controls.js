@@ -11,6 +11,7 @@ window.PhoneCamControls = {
       cameraFacing: document.querySelector("#camera-facing").value,
       resolution: document.querySelector("#resolution").value,
       fps: Number(document.querySelector("#fps").value),
+      transportMode: "jpeg",
       showPreview: document.querySelector("#show-preview").checked,
     };
   },
@@ -41,6 +42,8 @@ window.PhoneCamControls = {
     if (start) this.startCamera();
     const stop = event.target.closest("#stop-camera");
     if (stop) this.stopCamera();
+    const repair = event.target.closest("#repair-camera");
+    if (repair) this.repairVirtualCamera();
   },
 
   async startCamera() {
@@ -51,6 +54,12 @@ window.PhoneCamControls = {
 
   async stopCamera() {
     const status = await window.PhoneCamApi.stopCamera();
+    window.PhoneCamState.merge(status);
+    window.PhoneCamRender.render();
+  },
+
+  async repairVirtualCamera() {
+    const status = await window.PhoneCamApi.repairVirtualCamera();
     window.PhoneCamState.merge(status);
     window.PhoneCamRender.render();
   },

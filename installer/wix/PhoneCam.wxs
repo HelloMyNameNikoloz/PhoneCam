@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="PhoneCam"
+    Manufacturer="PhoneCam Contributors"
+    Version="0.1.0"
+    UpgradeCode="{8D6F08D0-2D87-4A8C-92C8-4979D71E1772}"
+    Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of PhoneCam is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Title="PhoneCam" Level="1">
+      <ComponentGroupRef Id="PhoneCamFiles" />
+      <ComponentGroupRef Id="PhoneCamDriverFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="InstallFolder" Name="PhoneCam" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="PhoneCam" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="ProgramDataPhoneCam" Name="PhoneCam">
+        <Directory Id="DriverFolder" Name="Driver" />
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="PhoneCamFiles" Directory="InstallFolder">
+      <Component Id="PhoneCamExe">
+        <File Id="PhoneCamExeFile" Source="$(var.AppExe)" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamCompanionApk">
+        <File Source="$(var.CompanionApk)" Name="PhoneCamCompanion.apk" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="PhoneCamDriverFiles" Directory="DriverFolder">
+      <Component Id="PhoneCamDriverInf">
+        <File Source="$(var.DriverDir)\PhoneCamCameraDriver.inf" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamDriverCat">
+        <File Source="$(var.DriverDir)\phonecamcameradriver.cat" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamDriverBinary">
+        <File Source="$(var.DriverDir)\PhoneCamCameraDriver.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamMediaSourceBinary">
+        <File Source="$(var.DriverDir)\PhoneCamVirtualCamera.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
+      <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" />
+      <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKLM" Key="Software\PhoneCam" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Package>
+</Wix>

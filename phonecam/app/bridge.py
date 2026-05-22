@@ -4,13 +4,15 @@ import json
 import time
 from typing import Any, Dict, List
 
+from app.companion_manager import CompanionManager
 from app.config import DEFAULT_SETTINGS
 from app.device_detector import DeviceDetector
 from app.frame_receiver import FrameReceiver
 from app.logger import MemoryLogger
 from app.native_settings import write_native_settings
-from app.paths import adb_path, companion_apk_path, settings_path
+from app.paths import adb_path, companion_apk_path, repair_script_path, settings_path
 from app.process_utils import run_capture
+from app.repair import launch_repair
 from app.virtual_camera_status import is_phonecam_installed
 
 
@@ -19,14 +21,12 @@ class PhoneCamBridge:
         self.logger = MemoryLogger()
         self.detector = DeviceDetector(adb_path())
         self.receiver = FrameReceiver(self._receiver_log)
+        self.companion = CompanionManager(adb_path(), companion_apk_path(), self.logger)
         self.settings = self.load_settings()
         write_native_settings(self.settings)
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
         self._reverse_device: str | None = None
-        self._installed_device: str | None = None
-        self._companion_device: str | None = None
-        self._companion_signature: tuple[str, int, str, str] | None = None
         self._virtual_camera_checked = 0.0
         self._virtual_camera_installed = False
         self.receiver.start()
@@ -56,6 +56,9 @@ class PhoneCamBridge:
 
     def get_logs(self) -> List[Dict[str, str]]:
         return self.logger.all()
+
+    def repair_virtual_camera(self) -> Dict[str, Any]:
+        return self._status_payload(launch_repair(repair_script_path(), self.logger))
 
     def save_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **self.settings, **settings}
@@ -96,7 +99,7 @@ class PhoneCamBridge:
 
     def _restart_if_running(self) -> None:
         self._ensure_usb_reverse()
-        self._companion_device = None
+        self.companion.reset()
         self._ensure_companion_running()
 
     def _selected_ready_device(self) -> Dict[str, str] | None:
@@ -116,6 +119,7 @@ class PhoneCamBridge:
             "frameReceiver": receiver_status,
             "performance": self.receiver.performance(int(self.settings.get("fps", 30))),
             "virtualCameraInstalled": self._check_virtual_camera_installed(),
+            "virtualCameraStatus": self._virtual_camera_status(receiver_status),
             "status": status,
             "error": error or self.device_error,
             "missingAdb": not adb_path().exists(),
@@ -132,6 +136,15 @@ class PhoneCamBridge:
         if any(d["status"] == "device" for d in self.devices):
             return "connected"
         return "waiting"
+
+    def _virtual_camera_status(self, receiver_status: Dict[str, Any]) -> str:
+        if not self._check_virtual_camera_installed():
+            return "missing"
+        if self.device_error:
+            return "error"
+        if receiver_status["framesReceived"] > 0:
+            return "active"
+        return "no_frames"
 
     def _log_device_state(self) -> None:
         if not self.devices:
@@ -163,49 +176,7 @@ class PhoneCamBridge:
     def _ensure_companion_running(self) -> None:
         device = self._selected_ready_device()
         device_id = device["id"] if device else None
-        if not device_id:
-            self._companion_device = None
-            self._companion_signature = None
-            return
-        signature = (
-            device_id,
-            int(self.settings.get("fps", 30)),
-            str(self.settings.get("resolution", "1920x1080")),
-            str(self.settings.get("cameraFacing", "back")),
-        )
-        if self._companion_signature == signature or not companion_apk_path().exists():
-            return
-        if self._installed_device != device_id:
-            install = run_capture([str(adb_path()), "-s", device_id, "install", "-r", str(companion_apk_path())], timeout=45)
-            if install.returncode != 0:
-                self.logger.warning((install.stderr or install.stdout or "Companion install failed").strip())
-                return
-            self._installed_device = device_id
-        start = run_capture([
-            str(adb_path()),
-            "-s",
-            device_id,
-            "shell",
-            "am",
-            "start",
-            "-n",
-            "com.phonecam.companion/.MainActivity",
-            "--ei",
-            "fps",
-            str(int(self.settings.get("fps", 30))),
-            "--es",
-            "resolution",
-            str(self.settings.get("resolution", "1920x1080")),
-            "--es",
-            "facing",
-            str(self.settings.get("cameraFacing", "back")),
-        ], timeout=8)
-        if start.returncode == 0:
-            self._companion_device = device_id
-            self._companion_signature = signature
-            self.logger.success("PhoneCam Android companion installed and started")
-        else:
-            self.logger.warning((start.stderr or start.stdout or "Companion start failed").strip())
+        self.companion.ensure_running(device_id, self.settings)
 
     def _receiver_log(self, level: str, message: str) -> None:
         getattr(self.logger, level, self.logger.info)(message)

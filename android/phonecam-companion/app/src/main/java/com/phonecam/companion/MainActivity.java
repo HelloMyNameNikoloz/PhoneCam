@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -24,17 +23,20 @@ public class MainActivity extends Activity {
     private static final int ACCENT = 0xff10a37f;
 
     private CameraStreamer streamer;
+    private CompanionUi ui;
     private TextView status;
     private TextView statusPill;
     private TextView hint;
     private int targetFps = 30;
     private String resolution = "1920x1080";
     private String facing = "back";
+    private String transport = "jpeg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         readIntent(getIntent());
+        ui = new CompanionUi(this);
         streamer = new CameraStreamer(this, this::setStatus);
         keepCameraSessionVisible();
         buildUi();
@@ -59,45 +61,45 @@ public class MainActivity extends Activity {
     }
 
     private void buildUi() {
-        LinearLayout root = column(24);
-        root.setPadding(dp(22), dp(34), dp(22), dp(22));
+        LinearLayout root = ui.column(24);
+        root.setPadding(ui.dp(22), ui.dp(34), ui.dp(22), ui.dp(22));
         root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setBackgroundColor(BG);
 
-        LinearLayout brand = row(12);
-        TextView mark = label("▣", 26, ACCENT, true);
-        LinearLayout names = column(2);
-        names.addView(label("PhoneCam", 24, TEXT, true));
-        names.addView(label("USB Android Camera", 14, MUTED, false));
+        LinearLayout brand = ui.row(12);
+        TextView mark = ui.label("▣", 26, ACCENT, true);
+        LinearLayout names = ui.column(2);
+        names.addView(ui.label("PhoneCam", 24, TEXT, true));
+        names.addView(ui.label("USB Android Camera", 14, MUTED, false));
         brand.addView(mark);
         brand.addView(names);
 
-        LinearLayout card = column(18);
-        card.setPadding(dp(20), dp(20), dp(20), dp(20));
-        card.setBackground(round(SURFACE, 22, BORDER));
+        LinearLayout card = ui.column(18);
+        card.setPadding(ui.dp(20), ui.dp(20), ui.dp(20), ui.dp(20));
+        card.setBackground(ui.round(SURFACE, 22, BORDER));
 
-        statusPill = label("Waiting", 13, ACCENT, true);
+        statusPill = ui.label("Waiting", 13, ACCENT, true);
         statusPill.setGravity(Gravity.CENTER);
-        statusPill.setPadding(dp(14), dp(7), dp(14), dp(7));
-        statusPill.setBackground(round(0x2010a37f, 999, 0x6610a37f));
+        statusPill.setPadding(ui.dp(14), ui.dp(7), ui.dp(14), ui.dp(7));
+        statusPill.setBackground(ui.round(0x2010a37f, 999, 0x6610a37f));
 
-        TextView title = label("Camera bridge", 22, TEXT, true);
-        hint = label("", 15, MUTED, false);
+        TextView title = ui.label("Camera bridge", 22, TEXT, true);
+        hint = ui.label("", 15, MUTED, false);
         updateHint();
-        status = label("Connect USB and open PhoneCam on Windows.", 15, MUTED, false);
+        status = ui.label("Connect USB and open PhoneCam on Windows.", 15, MUTED, false);
 
-        LinearLayout actions = row(10);
-        actions.addView(button("Start", true), weighted());
-        actions.addView(button("Stop", false), weighted());
+        LinearLayout actions = ui.row(10);
+        actions.addView(button("Start", true), ui.weighted());
+        actions.addView(button("Stop", false), ui.weighted());
 
-        card.addView(statusPill, wrap());
+        card.addView(statusPill, ui.wrap());
         card.addView(title);
         card.addView(hint);
         card.addView(actions);
         card.addView(status);
 
-        root.addView(brand, full());
-        root.addView(card, full());
+        root.addView(brand, ui.full());
+        root.addView(card, ui.full());
         setContentView(root);
     }
 
@@ -108,7 +110,7 @@ public class MainActivity extends Activity {
         button.setTextColor(primary ? 0xff051611 : TEXT);
         button.setTextSize(15);
         button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        button.setBackground(round(primary ? ACCENT : ELEVATED, 16, primary ? ACCENT : BORDER));
+        button.setBackground(ui.round(primary ? ACCENT : ELEVATED, 16, primary ? ACCENT : BORDER));
         button.setOnClickListener(view -> {
             if (primary) startStream();
             else {
@@ -117,56 +119,6 @@ public class MainActivity extends Activity {
             }
         });
         return button;
-    }
-
-    private TextView label(String value, int sp, int color, boolean bold) {
-        TextView view = new TextView(this);
-        view.setText(value);
-        view.setTextSize(sp);
-        view.setTextColor(color);
-        if (bold) view.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        return view;
-    }
-
-    private LinearLayout column(int gap) {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
-        layout.setDividerDrawable(new SpaceDrawable(dp(gap), false));
-        return layout;
-    }
-
-    private LinearLayout row(int gap) {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setGravity(Gravity.CENTER_VERTICAL);
-        layout.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
-        layout.setDividerDrawable(new SpaceDrawable(dp(gap), true));
-        return layout;
-    }
-
-    private GradientDrawable round(int fill, int radius, int stroke) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(fill);
-        drawable.setCornerRadius(dp(radius));
-        drawable.setStroke(dp(1), stroke);
-        return drawable;
-    }
-
-    private LinearLayout.LayoutParams full() {
-        return new LinearLayout.LayoutParams(-1, -2);
-    }
-
-    private LinearLayout.LayoutParams wrap() {
-        return new LinearLayout.LayoutParams(-2, -2);
-    }
-
-    private LinearLayout.LayoutParams weighted() {
-        return new LinearLayout.LayoutParams(0, dp(52), 1);
-    }
-
-    private int dp(int value) {
-        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     private void keepCameraSessionVisible() {
@@ -179,8 +131,10 @@ public class MainActivity extends Activity {
         targetFps = intent.getIntExtra("fps", 30);
         resolution = intent.getStringExtra("resolution");
         facing = intent.getStringExtra("facing");
+        transport = intent.getStringExtra("transport");
         if (resolution == null) resolution = "1920x1080";
         if (facing == null) facing = "back";
+        if (transport == null) transport = "jpeg";
     }
 
     private void updateHint() {
@@ -204,7 +158,7 @@ public class MainActivity extends Activity {
 
     private void startStream() {
         try {
-            streamer.start(targetFps, resolution, facing);
+            streamer.start(targetFps, resolution, facing, transport);
             setStatus("Starting camera");
         } catch (Exception exc) {
             setStatus(exc.getMessage());

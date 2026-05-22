@@ -22,6 +22,10 @@ window.PhoneCamApi = {
     return this.call("stop_camera");
   },
 
+  repairVirtualCamera() {
+    return this.call("repair_virtual_camera");
+  },
+
   saveSettings(settings) {
     return this.call("save_settings", settings);
   },

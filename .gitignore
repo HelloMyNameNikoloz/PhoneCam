@@ -1,9 +1,12 @@
 .vs/
+artifacts/
 build/
 out/
 *.user
 *.suo
 *.log
+*.pyc
+__pycache__/
 *.pdb
 *.ilk
 *.obj
@@ -19,3 +22,7 @@ phonecam/app/__pycache__/
 android/**/build/
 android/**/.gradle/
 android/**/local.properties
+phonecam/assets/PhoneCamCompanion.apk
+*.msi
+*.wixpdb
+*.cer

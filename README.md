@@ -1,75 +1,122 @@
 # PhoneCam
 
-PhoneCam is now rooted at this directory.
+PhoneCam turns an Android phone into a real selectable Windows camera named
+`PhoneCam`. Apps such as OBS, browsers, Discord, Zoom, Teams, and Windows Camera
+should be able to choose it from their normal camera dropdown.
 
-- `phonecam/` contains the Python desktop control app.
-- `android/phonecam-companion/` contains the Android Camera2 frame producer.
-- `native/phonecam_virtual_camera/` contains the v2 Windows virtual camera package.
-- `native/vendor/` contains Microsoft sample code used as the base for the Frame Server camera implementation.
-- `tools/` contains build and install helpers.
+PhoneCam is open source under GPLv3. The project goal is simple: high-quality
+Android webcam support without watermarks, accounts, cloud services, or
+subscription paywalls.
 
-## V2 Direction
+## Status
 
-The real camera device path is Windows Frame Server Custom Media Source:
+PhoneCam is currently a working developer build, not a public beta installer.
 
-1. A UMDF stub driver registers `PhoneCam` under the Windows camera categories.
-2. A COM media source DLL provides frames to Windows camera clients.
-3. The Python app receives Android frames over an ADB reverse tunnel.
-4. The Android companion captures Camera2 frames and posts them over USB.
+Working locally:
 
-Building the native camera requires Visual Studio Build Tools 2022, Windows SDK 10.0.26100, and WDK 10.0.26100.
+- Android phone detection over ADB.
+- Android companion app auto-install/start over USB.
+- Live preview in the PhoneCam desktop app.
+- Registered Windows virtual camera named `PhoneCam`.
+- OBS receives real frames through the virtual camera.
+- Live FPS, latency, dropped-frame, and output diagnostics.
+
+Release blockers:
+
+- Microsoft-signed driver package for Secure Boot users.
+- WiX MSI installer with repair/uninstall actions.
+- 30-minute 1080p30 soak test on clean Windows 10/11 systems.
+- Hot-path performance work to replace JPEG + Python/Pillow.
+
+## Architecture
+
+PhoneCam has four parts:
+
+- `phonecam/`: Python + pywebview Windows control app.
+- `android/phonecam-companion/`: Android Camera2 companion app.
+- `native/phonecam_virtual_camera/`: Windows Frame Server custom media source
+  and UMDF camera registration package.
+- `tools/`: build, install, repair, diagnostics, and soak-test scripts.
+
+See:
+
+- `docs/architecture.md`
+- `docs/virtual-camera.md`
+- `native/phonecam_virtual_camera/FRAME_PIPELINE.md`
+- `docs/performance-roadmap.md`
+- `docs/driver-signing.md`
+- `docs/onboarding.md`
+- `docs/test-matrix.md`
+- `docs/third-party.md`
+
+## Development Setup
+
+Install:
+
+- Python 3.12+
+- Visual Studio Build Tools 2022
+- Windows SDK and WDK 10.0.26100+
+- Android SDK with platform-tools
+- WiX Toolset v4 for MSI work
+
+Python app:
+
+```powershell
+cd phonecam
+python -m pip install -r requirements.txt
+python app/main.py
+```
+
+Android companion:
+
+```powershell
+.\tools\build_android_companion.ps1
+```
+
+Native virtual camera:
 
 ```powershell
 .\tools\build_native_camera.ps1
 ```
 
-For local development, sign the generated catalog with a local test certificate from an elevated PowerShell session:
+Release artifacts:
+
+```powershell
+.\tools\build_release_artifacts.ps1
+```
+
+Local driver development still requires test signing:
 
 ```powershell
 .\tools\sign_virtual_camera_test.ps1
-```
-
-Windows must also allow test-signed drivers. Run this once from elevated PowerShell, then reboot:
-
-```powershell
-bcdedit /set testsigning on
-```
-
-If Windows reports that the value is protected by Secure Boot policy, disable Secure Boot in UEFI/BIOS first. For production installs with Secure Boot enabled, the driver package must be Microsoft signed through attestation or WHQL signing.
-
-Installing/registering the camera also requires elevated PowerShell:
-
-```powershell
 .\tools\install_virtual_camera.ps1
 ```
 
-Build and install the Android companion:
+Public releases must use Microsoft driver signing instead of test signing.
+
+## Soak Test
+
+After starting PhoneCam and selecting it in OBS, run:
 
 ```powershell
-.\tools\build_android_companion.ps1 -Install
+.\tools\run_soak_test.ps1 -Minutes 30
 ```
 
-Run the Windows app:
+The script writes CSV output under `artifacts/soak/`.
 
-```powershell
-cd phonecam
-python app/main.py
-```
+## Privacy
 
-The app starts a local frame receiver and runs `adb reverse tcp:4767 tcp:4767`.
-Open the Android companion and start the camera. Apps should select `PhoneCam`
-directly from their normal camera device dropdown.
+PhoneCam is local USB only by default:
 
-Check registration and frame-buffer state:
+- no cloud service
+- no account
+- no telemetry by default
+- no intentional frame recording or screenshot saving
 
-```powershell
-.\tools\check_virtual_camera.ps1
-```
+See `docs/privacy.md`.
 
-Current v2 status:
+## Release Plan
 
-- The native package builds and produces a catalog.
-- `tools/sign_virtual_camera_test.ps1` creates/trusts a local test certificate and signs the catalog.
-- The INF registers the Windows camera device as `PhoneCam`.
-- The media source reads frames from `C:\ProgramData\PhoneCam\framebuffer.bin`.
-- The Python app writes decoded Android frames into that frame buffer.
+The beta release checklist is in `docs/release-checklist.md`.
+
+The installer strategy is in `docs/installer.md`.

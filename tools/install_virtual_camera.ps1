@@ -79,7 +79,9 @@ if (-not (Test-Path $catalog)) { throw "Driver catalog not found. Run tools\buil
 
 Assert-CatalogSigned -CatalogPath $catalog
 Assert-Elevated "install the PhoneCam virtual camera"
-Assert-TestSigningEnabled
+if (-not (Test-MicrosoftSignedCatalog -CatalogPath $catalog)) {
+    Assert-TestSigningEnabled
+}
 
 $consumers = @(Get-Process PhoneCam, obs64, obs32, obs, WindowsCamera, Video.UI -ErrorAction SilentlyContinue)
 if ($consumers.Count -gt 0) {

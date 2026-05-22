@@ -1,69 +1,32 @@
-# PhoneCam
+# PhoneCam Desktop App
 
-PhoneCam turns an Android phone into a registered Windows camera named `PhoneCam`.
+This folder contains the Python + pywebview control app for PhoneCam.
 
-When PhoneCam is open it stays available in the Windows system tray, receives frames from the Android companion over USB, and writes those frames to the native virtual camera bridge.
-
-## Requirements
-
-- Windows 10 or Windows 11
-- Python 3.10+
-- `adb.exe`, `AdbWinApi.dll`, and `AdbWinUsbApi.dll` placed in `bin/`
-- Installed PhoneCam native camera package
-- `PhoneCamCompanion.apk` bundled in `assets/`
-
-Install Python dependencies:
+Run from source:
 
 ```powershell
-pip install -r requirements.txt
-```
-
-Run in development:
-
-```powershell
+python -m pip install -r requirements.txt
 python app/main.py
 ```
 
-## Android Setup
-
-1. Enable Developer Options.
-2. Enable USB Debugging.
-3. Connect phone via USB.
-4. Accept the RSA debugging prompt on the phone.
-5. PhoneCam installs and starts its Android bridge automatically.
-
-## OBS Setup
-
-1. Open OBS.
-2. Add a Video Capture Device source.
-3. Select `PhoneCam`.
-4. Confirm the app shows Android frames are feeding the virtual camera.
-5. Use your microphone as a separate audio source.
-
-## Build PhoneCam.exe
-
-The build script bundles `ui/`, `assets/`, and `bin/` into a windowed PyInstaller app:
+Build the local EXE:
 
 ```powershell
-python build_tools/build_exe.py
+python build_tools\build_exe.py
 ```
 
-The output is created at:
+The EXE is a build artifact and is intentionally ignored by git.
 
-```text
-dist/PhoneCam.exe
-```
+Runtime responsibilities:
 
-## Troubleshooting
+- expose the pywebview bridge to the UI
+- detect Android devices with bundled ADB
+- set up ADB reverse USB tunnels
+- install/start the Android companion APK when available
+- receive Android frames on localhost
+- write frames and settings under `%ProgramData%\PhoneCam`
+- show preview, status, logs, and performance diagnostics
 
-- Phone not detected: confirm the cable supports data, USB debugging is enabled, and `adb.exe` is present in `bin/`.
-- Unauthorized: unlock your phone and accept the USB debugging prompt.
-- Offline: reconnect the cable or switch USB mode to Transferring images / PTP or Charging only.
-- Lag: choose `1920x1080` at `30 FPS`.
-- PhoneCam not listed: build, sign, and install the native camera package, then restart OBS.
-- Black preview: confirm the Android companion is open and PhoneCam reports received frames.
-- 4K too heavy: use 1080p30 for best stability. 4K is recommended only when the phone and PC handle it smoothly.
-
-## Notes
-
-PhoneCam uses USB only in the desktop app. Phone audio is disabled by default.
+The current hot path uses JPEG frames and Pillow decode. This is a temporary
+implementation. See `../docs/performance-roadmap.md` for the native/YUV pipeline
+planned before stable release.

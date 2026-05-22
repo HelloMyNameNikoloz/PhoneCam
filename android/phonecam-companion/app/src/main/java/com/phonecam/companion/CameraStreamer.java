@@ -41,6 +41,7 @@ final class CameraStreamer {
     private int targetWidth = 1920;
     private int targetHeight = 1080;
     private String targetFacing = "back";
+    private String targetTransport = "jpeg";
     private Range<Integer> fpsRange = new Range<>(30, 30);
 
     CameraStreamer(Context context, Listener listener) {
@@ -48,28 +49,29 @@ final class CameraStreamer {
         this.listener = listener;
     }
 
-    void start(int fps, String resolution, String facing) throws Exception {
+    void start(int fps, String resolution, String facing, String transport) throws Exception {
         stop();
         targetFps = Math.max(1, fps);
         targetFacing = facing == null ? "back" : facing;
+        targetTransport = transport == null ? "jpeg" : transport;
         applyResolution(resolution);
         thread = new HandlerThread("PhoneCamCamera");
         thread.start();
         handler = new Handler(thread.getLooper());
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        String cameraId = chooseBackCamera(manager);
+        String cameraId = CameraSupport.chooseCameraId(manager, targetFacing);
         CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
-        Size size = chooseSize(info);
+        Size size = CameraSupport.chooseSize(info, targetWidth, targetHeight);
         fpsRange = CameraSupport.chooseFpsRange(info, targetFps);
-        Log.i(TAG, "Using " + size.getWidth() + "x" + size.getHeight() + " " + fpsRange);
+        Log.i(TAG, "Using " + size.getWidth() + "x" + size.getHeight() + " " + fpsRange + " " + targetTransport);
         reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 3);
         reader.setOnImageAvailableListener(this::onImageAvailable, handler);
         openCamera(manager, cameraId);
     }
 
     void stop() {
-        closeQuietly(session);
-        closeQuietly(camera);
+        CameraSupport.closeQuietly(session);
+        CameraSupport.closeQuietly(camera);
         if (reader != null) {
             reader.close();
             reader = null;
@@ -103,35 +105,6 @@ final class CameraStreamer {
                 stop();
             }
         }, handler);
-    }
-
-    private String chooseBackCamera(CameraManager manager) throws Exception {
-        for (String id : manager.getCameraIdList()) {
-            CameraCharacteristics info = manager.getCameraCharacteristics(id);
-            Integer facing = info.get(CameraCharacteristics.LENS_FACING);
-            int wanted = "front".equals(targetFacing)
-                    ? CameraCharacteristics.LENS_FACING_FRONT
-                    : CameraCharacteristics.LENS_FACING_BACK;
-            if (facing != null && facing == wanted) {
-                return id;
-            }
-        }
-        return manager.getCameraIdList()[0];
-    }
-
-    private Size chooseSize(CameraCharacteristics info) {
-        Size[] sizes = info.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                .getOutputSizes(ImageFormat.JPEG);
-        Size fallback = sizes[0];
-        for (Size size : sizes) {
-            if (size.getWidth() == targetWidth && size.getHeight() == targetHeight) {
-                return size;
-            }
-            if (size.getWidth() == 1280 && size.getHeight() == 720) {
-                fallback = size;
-            }
-        }
-        return fallback;
     }
 
     private void createSession() {
@@ -209,12 +182,5 @@ final class CameraStreamer {
 
     private byte jpegQuality() {
         return (byte) (targetFps >= 120 ? 54 : targetFps >= 60 ? 64 : 72);
-    }
-
-    private static void closeQuietly(AutoCloseable closeable) {
-        try {
-            if (closeable != null) closeable.close();
-        } catch (Exception ignored) {
-        }
     }
 }

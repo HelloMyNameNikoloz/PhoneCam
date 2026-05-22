@@ -1,0 +1,34 @@
+PhoneCam
+Copyright (c) PhoneCam contributors.
+
+PhoneCam is licensed under the GNU General Public License version 3.
+See LICENSE for the full license text.
+
+Third-party components and required notices:
+
+- Microsoft Windows Driver Samples SimpleMediaSource sample
+  - Used as the starting point for the Windows Frame Server custom media source.
+  - License notice is preserved in native/vendor/MICROSOFT-WINDOWS-DRIVER-SAMPLES-LICENSE.txt.
+
+- Microsoft Windows Implementation Library (WIL)
+  - Vendored under native/vendor/wil.
+  - License notice is preserved in native/vendor/wil/LICENSE.
+
+- Android Debug Bridge and Windows ADB DLLs
+  - Bundled under phonecam/bin for USB device detection and adb reverse.
+  - Distributed as Android platform-tools components. Release packaging must record
+    the exact platform-tools version and source URL used.
+
+- scrcpy runtime files and dependencies
+  - Bundled under phonecam/bin from the previous v1 implementation.
+  - The v2 Android companion path does not depend on scrcpy for the main camera
+    feed. Before public release, either remove these files or document exact
+    versions, source URLs, and licenses for scrcpy, FFmpeg DLLs, SDL, and libusb.
+
+- pywebview, pystray, Pillow, PyInstaller
+  - Python dependencies listed in phonecam/requirements.txt.
+  - Release packaging must include dependency versions and licenses.
+
+Generated artifacts are not source and should not be committed:
+PhoneCam.exe, PhoneCamCompanion.apk, MSI packages, native x64/Release outputs,
+catalog files, build directories, pycache files, and local certificates.

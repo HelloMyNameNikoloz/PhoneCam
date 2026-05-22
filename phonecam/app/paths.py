@@ -43,3 +43,20 @@ def settings_path() -> Path:
 
 def app_data_dir() -> Path:
     return settings_path().parent
+
+
+def repo_root() -> Path:
+    return bundled_root().parent
+
+
+def tools_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return bundled_root() / "tools"
+    return repo_root() / "tools"
+
+
+def repair_script_path() -> Path:
+    override = os.environ.get("PHONECAM_REPAIR_SCRIPT")
+    if override:
+        return Path(override)
+    return tools_dir() / "repair_virtual_camera.ps1"

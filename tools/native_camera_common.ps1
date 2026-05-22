@@ -5,6 +5,13 @@ function Get-PhoneCamRoot {
 }
 
 function Get-NativeCameraPackagePath {
+    if ($env:PHONECAM_DRIVER_PACKAGE -and (Test-Path $env:PHONECAM_DRIVER_PACKAGE)) {
+        return (Resolve-Path $env:PHONECAM_DRIVER_PACKAGE).Path
+    }
+    $installedPackage = Join-Path $env:ProgramData "PhoneCam\Driver"
+    if (Test-Path $installedPackage) {
+        return (Resolve-Path $installedPackage).Path
+    }
     $root = Get-PhoneCamRoot
     return Join-Path $root "native\phonecam_virtual_camera\x64\Release\PhoneCamCameraDriver"
 }
@@ -82,6 +89,16 @@ Then reboot Windows and run:
 .\tools\install_virtual_camera.ps1
 "@
     }
+}
+
+function Test-MicrosoftSignedCatalog {
+    param([Parameter(Mandatory = $true)][string]$CatalogPath)
+
+    $signature = Get-AuthenticodeSignature $CatalogPath
+    if ($signature.Status -ne "Valid" -or -not $signature.SignerCertificate) {
+        return $false
+    }
+    return $signature.SignerCertificate.Subject -like "*Microsoft Windows Hardware Compatibility Publisher*"
 }
 
 function Get-SecureBootState {
