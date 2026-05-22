@@ -3,7 +3,7 @@
   <Package
     Name="PhoneCam"
     Manufacturer="PhoneCam Contributors"
-    Version="0.1.0"
+    Version="$(var.ProductVersion)"
     UpgradeCode="{8D6F08D0-2D87-4A8C-92C8-4979D71E1772}"
     Scope="perMachine">
 
@@ -12,12 +12,20 @@
 
     <Feature Id="MainFeature" Title="PhoneCam" Level="1">
       <ComponentGroupRef Id="PhoneCamFiles" />
+      <ComponentGroupRef Id="PhoneCamFilesAssets" />
+      <ComponentGroupRef Id="PhoneCamScriptFiles" />
+      <?if $(var.IncludeDriver) = 1 ?>
       <ComponentGroupRef Id="PhoneCamDriverFiles" />
+      <?endif?>
+      <ComponentRef Id="PhoneCamProgramData" />
       <ComponentRef Id="StartMenuShortcut" />
     </Feature>
 
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="InstallFolder" Name="PhoneCam" />
+      <Directory Id="InstallFolder" Name="PhoneCam">
+        <Directory Id="AssetsFolder" Name="assets" />
+        <Directory Id="ToolsFolder" Name="tools" />
+      </Directory>
     </StandardDirectory>
 
     <StandardDirectory Id="ProgramMenuFolder">
@@ -34,11 +42,33 @@
       <Component Id="PhoneCamExe">
         <File Id="PhoneCamExeFile" Source="$(var.AppExe)" KeyPath="yes" />
       </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="PhoneCamFilesAssets" Directory="AssetsFolder">
       <Component Id="PhoneCamCompanionApk">
         <File Source="$(var.CompanionApk)" Name="PhoneCamCompanion.apk" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
+    <ComponentGroup Id="PhoneCamScriptFiles" Directory="ToolsFolder">
+      <Component Id="PhoneCamRepairScript">
+        <File Source="$(var.ToolsDir)\repair_virtual_camera.ps1" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamInstallCameraScript">
+        <File Source="$(var.ToolsDir)\install_virtual_camera.ps1" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamUninstallCameraScript">
+        <File Source="$(var.ToolsDir)\uninstall_virtual_camera.ps1" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamCheckCameraScript">
+        <File Source="$(var.ToolsDir)\check_virtual_camera.ps1" KeyPath="yes" />
+      </Component>
+      <Component Id="PhoneCamNativeCommonScript">
+        <File Source="$(var.ToolsDir)\native_camera_common.ps1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <?if $(var.IncludeDriver) = 1 ?>
     <ComponentGroup Id="PhoneCamDriverFiles" Directory="DriverFolder">
       <Component Id="PhoneCamDriverInf">
         <File Source="$(var.DriverDir)\PhoneCamCameraDriver.inf" KeyPath="yes" />
@@ -53,11 +83,43 @@
         <File Source="$(var.DriverDir)\PhoneCamVirtualCamera.dll" KeyPath="yes" />
       </Component>
     </ComponentGroup>
+    <?endif?>
+
+    <Component Id="PhoneCamProgramData" Directory="ProgramDataPhoneCam">
+      <CreateFolder />
+      <RemoveFile Id="RemoveFrameBuffer" Name="framebuffer.bin" On="uninstall" />
+      <RemoveFile Id="RemoveNativeStats" Name="native_stats.bin" On="uninstall" />
+      <RemoveFile Id="RemoveNativeSettings" Name="native_settings.txt" On="uninstall" />
+      <RemoveFile Id="RemoveNativeLog" Name="native_camera.log" On="uninstall" />
+      <RegistryValue Root="HKLM" Key="Software\PhoneCam" Name="ProgramData" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
 
     <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
       <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" />
       <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
       <RegistryValue Root="HKLM" Key="Software\PhoneCam" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
     </Component>
+
+    <?if $(var.IncludeDriver) = 1 ?>
+    <CustomAction
+      Id="InstallPhoneCamCamera"
+      Directory="ToolsFolder"
+      ExeCommand="&quot;[SystemFolder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -ExecutionPolicy Bypass -File &quot;[ToolsFolder]install_virtual_camera.ps1&quot;"
+      Execute="deferred"
+      Impersonate="no"
+      Return="check" />
+    <CustomAction
+      Id="UninstallPhoneCamCamera"
+      Directory="ToolsFolder"
+      ExeCommand="&quot;[SystemFolder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -ExecutionPolicy Bypass -File &quot;[ToolsFolder]uninstall_virtual_camera.ps1&quot;"
+      Execute="deferred"
+      Impersonate="no"
+      Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallPhoneCamCamera" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="UninstallPhoneCamCamera" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+    <?endif?>
   </Package>
 </Wix>

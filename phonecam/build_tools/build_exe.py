@@ -37,6 +37,8 @@ def main() -> int:
         f"{repo / 'tools' / 'check_virtual_camera.ps1'}{add_sep}tools",
         "--add-data",
         f"{repo / 'tools' / 'native_camera_common.ps1'}{add_sep}tools",
+        "--add-data",
+        f"{repo / 'tools' / 'uninstall_virtual_camera.ps1'}{add_sep}tools",
         str(root / "app" / "main.py"),
     ]
     if icon.exists():

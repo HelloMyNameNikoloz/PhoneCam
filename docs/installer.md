@@ -31,3 +31,12 @@ Build the MSI after producing the desktop EXE, Android APK, and native driver:
 ```powershell
 .\tools\build_installer.ps1
 ```
+
+For public release validation, require a trusted signed catalog:
+
+```powershell
+.\tools\build_installer.ps1 -RequireSignedDriver
+```
+
+The script bootstraps a project-local WiX CLI under `.tools/wix` if `wix.exe`
+is not already available. The MSI is written to `release/`.
