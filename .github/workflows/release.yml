@@ -110,7 +110,7 @@ jobs:
         with:
           name: android
           path: release-assets
-      - name: Diagnostic: List Android Artifact
+      - name: "Diagnostic: List Android Artifact"
         shell: pwsh
         run: |
           Write-Host "=== Diagnostic: Listing downloaded android artifact folder ==="
