@@ -4,94 +4,107 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 24px;
   min-height: 0;
-  padding: 24px;
+  padding: 32px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #2b2c34 0%, #25212a 100%);
+  background: var(--panel);
   box-shadow: var(--shadow);
 }
 
 .viewer::before {
-  position: absolute;
-  inset: 24px;
-  border: 1px solid rgba(244, 244, 245, 0.06);
-  border-radius: 18px;
-  content: "";
-  pointer-events: none;
+  display: none;
 }
 
 .viewer-card {
   display: grid;
+  align-content: center;
   justify-items: center;
-  gap: 18px;
-  width: min(820px, 86%);
+  gap: 20px;
+  width: min(840px, 92%);
   aspect-ratio: 16 / 9;
-  padding: 32px;
-  border: 1px solid rgba(244, 244, 245, 0.08);
-  border-radius: 18px;
-  background: #858683;
+  padding: 40px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  transition: all 200ms ease;
 }
 
 .viewer-card.running {
-  background: #15161c;
+  background: #000000;
+  border-color: #000000;
 }
 
 .live-preview {
   width: 100%;
   height: 100%;
-  border-radius: 14px;
+  border-radius: 12px;
   object-fit: contain;
-  background: #000;
+  background: #000000;
 }
 
 .viewer-card:has(.live-preview) {
   padding: 0;
-  background: #050609;
+  background: #000000;
+  border-color: #000000;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .camera-glyph {
   position: relative;
-  width: 104px;
-  height: 70px;
-  border-radius: 22px;
-  background: rgba(244, 244, 245, 0.74);
+  width: 72px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--elevated);
 }
 
 .camera-glyph::before {
   position: absolute;
-  left: 34px;
-  top: 20px;
-  width: 30px;
-  height: 30px;
+  left: 24px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #777975;
+  background: var(--surface);
   content: "";
 }
 
 .camera-glyph::after {
   position: absolute;
-  right: -38px;
-  top: 9px;
-  width: 30px;
-  height: 52px;
-  border-radius: 8px;
-  background: rgba(244, 244, 245, 0.74);
+  right: -24px;
+  top: 8px;
+  width: 20px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--elevated);
   content: "";
 }
 
 .viewer-text {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 8px;
   text-align: center;
+}
+
+.viewer-text h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.viewer-text p {
+  font-size: 13px;
+  color: var(--text-soft);
 }
 
 .viewer-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .telemetry-bar {
@@ -99,59 +112,73 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  width: min(980px, 94%);
-  padding: 10px;
+  width: min(980px, 96%);
+  padding: 8px;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(15, 16, 20, 0.82);
+  border-radius: 14px;
+  background: rgba(23, 23, 23, 0.85); /* Gorgeous translucent dark background */
   color: var(--text-soft);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .telemetry-bar.good {
-  border-color: rgba(34, 197, 94, 0.34);
+  border-color: rgba(16, 163, 127, 0.35);
 }
 
 .telemetry-bar.warn {
-  border-color: rgba(245, 158, 11, 0.42);
+  border-color: rgba(217, 119, 6, 0.35);
 }
 
 .telemetry-bar.bad {
-  border-color: rgba(239, 68, 68, 0.42);
+  border-color: rgba(220, 38, 38, 0.35);
 }
 
 .telemetry-bar span {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
-  min-height: 30px;
-  padding: 6px 9px;
-  border: 1px solid rgba(244, 244, 245, 0.06);
+  min-height: 28px;
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 999px;
-  background: rgba(244, 244, 245, 0.035);
+  background: var(--surface);
   color: var(--text);
   font-size: 12px;
-  font-weight: 720;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .telemetry-bar strong {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .telemetry-bar .telemetry-warning {
-  border-color: rgba(245, 158, 11, 0.28);
-  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.15);
+  color: #fde68a;
 }
 
 .inline-copy {
   float: right;
   margin-left: 12px;
-  border: 1px solid rgba(16, 163, 127, 0.44);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(16, 163, 127, 0.12);
-  color: var(--accent-hover);
+  background: var(--elevated);
+  color: var(--text);
+  padding: 2px 8px;
+  font-size: 11px;
   cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.inline-copy:hover {
+  background: rgba(255, 255, 255, 0.15);
 }

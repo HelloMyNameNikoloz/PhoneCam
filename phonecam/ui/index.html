@@ -14,7 +14,10 @@
     <div class="studio-shell">
       <header class="titlebar">
         <div class="app-brand">
-          <img src="../assets/logo.png" alt="" />
+          <svg class="app-logo-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff; vertical-align: middle;">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
           <strong>PhoneCam</strong>
           <span>USB Android Camera</span>
         </div>
@@ -27,10 +30,22 @@
         <div class="source-card" id="source-card"></div>
 
         <nav class="mode-tabs" aria-label="PhoneCam sections">
-          <button class="mode-tab active" type="button" data-panel="camera">Camera</button>
-          <button class="mode-tab" type="button" data-panel="setup">Setup</button>
-          <button class="mode-tab" type="button" data-panel="logs">Logs</button>
-          <button class="mode-tab" type="button" data-panel="about">About</button>
+          <button class="mode-tab active" type="button" data-panel="camera">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <span>Camera</span>
+          </button>
+          <button class="mode-tab" type="button" data-panel="setup">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            <span>Setup</span>
+          </button>
+          <button class="mode-tab" type="button" data-panel="logs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            <span>Logs</span>
+          </button>
+          <button class="mode-tab" type="button" data-panel="about">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>About</span>
+          </button>
         </nav>
 
         <section class="side-panel active" data-panel-view="camera">
@@ -72,8 +87,14 @@
           </label>
           <div class="divider"></div>
           <div class="action-row">
-            <button id="start-camera" class="button primary" type="button">Start Camera</button>
-            <button id="stop-camera" class="button" type="button">Stop</button>
+            <button id="start-camera" class="button primary" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+              <span>Start Camera</span>
+            </button>
+            <button id="stop-camera" class="button" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg>
+              <span>Stop</span>
+            </button>
           </div>
         </section>
 

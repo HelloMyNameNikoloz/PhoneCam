@@ -50,21 +50,82 @@ final class CameraStreamer {
     }
 
     void start(int fps, String resolution, String facing, String transport) throws Exception {
-        stop();
-        targetFps = Math.max(1, fps);
-        targetFacing = facing == null ? "back" : facing;
-        targetTransport = transport == null ? "jpeg" : transport;
-        applyResolution(resolution);
+        int newFps = Math.max(1, fps);
+        String newFacing = facing == null ? "back" : facing;
+        String newTransport = transport == null ? "jpeg" : transport;
+
+        // Parse new resolution
+        int newWidth = targetWidth;
+        int newHeight = targetHeight;
+        if (resolution != null && resolution.contains("x")) {
+            try {
+                String[] parts = resolution.split("x");
+                newWidth = Integer.parseInt(parts[0]);
+                newHeight = Integer.parseInt(parts[1]);
+            } catch (Exception ignored) {
+            }
+        }
+
+        CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        String cameraId = CameraSupport.chooseCameraId(manager, newFacing);
+        CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
+        Size size = CameraSupport.chooseSize(info, newWidth, newHeight);
+        Range<Integer> newFpsRange = CameraSupport.chooseFpsRange(info, newFps);
+
+        if (camera != null && newFacing.equals(targetFacing)) {
+            // Camera is already open and facing is the same. Optimize change!
+            boolean resolutionChanged = (size.getWidth() != targetWidth || size.getHeight() != targetHeight);
+            boolean fpsChanged = !newFpsRange.equals(fpsRange);
+
+            targetFps = newFps;
+            targetWidth = size.getWidth();
+            targetHeight = size.getHeight();
+            fpsRange = newFpsRange;
+            targetTransport = newTransport;
+
+            if (resolutionChanged) {
+                Log.i(TAG, "Hot-reconfiguring resolution: " + targetWidth + "x" + targetHeight);
+                if (session != null) {
+                    session.close();
+                    session = null;
+                }
+                if (reader != null) {
+                    reader.close();
+                    reader = null;
+                }
+                reader = ImageReader.newInstance(targetWidth, targetHeight, ImageFormat.JPEG, 3);
+                reader.setOnImageAvailableListener(this::onImageAvailable, handler);
+                createSession();
+            } else if (fpsChanged) {
+                Log.i(TAG, "Hot-reconfiguring FPS: " + targetFps);
+                if (session != null) {
+                    Surface surface = reader.getSurface();
+                    startRepeating(surface);
+                }
+            }
+            return;
+        }
+
+        // If camera is not null but facing has changed, do a clean restart
+        if (camera != null) {
+            stop();
+            // Short delay to let hardware release the resource
+            Thread.sleep(150);
+        }
+
+        targetFps = newFps;
+        targetFacing = newFacing;
+        targetTransport = newTransport;
+        targetWidth = size.getWidth();
+        targetHeight = size.getHeight();
+        fpsRange = newFpsRange;
+
         thread = new HandlerThread("PhoneCamCamera");
         thread.start();
         handler = new Handler(thread.getLooper());
-        CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        String cameraId = CameraSupport.chooseCameraId(manager, targetFacing);
-        CameraCharacteristics info = manager.getCameraCharacteristics(cameraId);
-        Size size = CameraSupport.chooseSize(info, targetWidth, targetHeight);
-        fpsRange = CameraSupport.chooseFpsRange(info, targetFps);
-        Log.i(TAG, "Using " + size.getWidth() + "x" + size.getHeight() + " " + fpsRange + " " + targetTransport);
-        reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 3);
+
+        Log.i(TAG, "Using " + targetWidth + "x" + targetHeight + " " + fpsRange + " " + targetTransport);
+        reader = ImageReader.newInstance(targetWidth, targetHeight, ImageFormat.JPEG, 3);
         reader.setOnImageAvailableListener(this::onImageAvailable, handler);
         openCamera(manager, cameraId);
     }

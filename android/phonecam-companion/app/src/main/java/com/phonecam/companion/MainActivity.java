@@ -14,13 +14,13 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private static final int CAMERA_PERMISSION = 42;
-    private static final int BG = 0xff0f1014;
-    private static final int SURFACE = 0xff17181f;
-    private static final int ELEVATED = 0xff20222b;
-    private static final int BORDER = 0xff30323d;
-    private static final int TEXT = 0xfff4f4f5;
-    private static final int MUTED = 0xffa1a1aa;
-    private static final int ACCENT = 0xff10a37f;
+    private static final int BG = 0xff0d0d0d;
+    private static final int SURFACE = 0xff171717;
+    private static final int ELEVATED = 0xff212121;
+    private static final int BORDER = 0x14ffffff; // rgba(255, 255, 255, 0.08)
+    private static final int TEXT = 0xffececec;
+    private static final int MUTED = 0xff676767;
+    private static final int ACCENT = 0xffffffff;
 
     private CameraStreamer streamer;
     private CompanionUi ui;
@@ -61,34 +61,34 @@ public class MainActivity extends Activity {
     }
 
     private void buildUi() {
-        LinearLayout root = ui.column(24);
-        root.setPadding(ui.dp(22), ui.dp(34), ui.dp(22), ui.dp(22));
+        LinearLayout root = ui.column(32); // Increased gap for premium feel
+        root.setPadding(ui.dp(28), ui.dp(56), ui.dp(28), ui.dp(28)); // Extremely spacious margins
         root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setBackgroundColor(BG);
 
         LinearLayout brand = ui.row(12);
         TextView mark = ui.label("▣", 26, ACCENT, true);
         LinearLayout names = ui.column(2);
-        names.addView(ui.label("PhoneCam", 24, TEXT, true));
-        names.addView(ui.label("USB Android Camera", 14, MUTED, false));
+        names.addView(ui.label("PhoneCam", 22, TEXT, true)); // Clean font sizing
+        names.addView(ui.label("USB Android Camera", 13, MUTED, false));
         brand.addView(mark);
         brand.addView(names);
 
-        LinearLayout card = ui.column(18);
-        card.setPadding(ui.dp(20), ui.dp(20), ui.dp(20), ui.dp(20));
-        card.setBackground(ui.round(SURFACE, 22, BORDER));
+        LinearLayout card = ui.column(24); // Airy elements inside the card
+        card.setPadding(ui.dp(28), ui.dp(28), ui.dp(28), ui.dp(28)); // High-end spacing
+        card.setBackground(ui.round(SURFACE, 18, BORDER)); // Refined modern radius
 
-        statusPill = ui.label("Waiting", 13, ACCENT, true);
+        statusPill = ui.label("Ready", 12, 0xffb4b4b8, true);
         statusPill.setGravity(Gravity.CENTER);
-        statusPill.setPadding(ui.dp(14), ui.dp(7), ui.dp(14), ui.dp(7));
-        statusPill.setBackground(ui.round(0x2010a37f, 999, 0x6610a37f));
+        statusPill.setPadding(ui.dp(12), ui.dp(6), ui.dp(12), ui.dp(6));
+        statusPill.setBackground(ui.round(0x1a676767, 999, 0x59676767)); // Sophisticated initial state
 
-        TextView title = ui.label("Camera bridge", 22, TEXT, true);
-        hint = ui.label("", 15, MUTED, false);
+        TextView title = ui.label("Camera bridge", 20, TEXT, true);
+        hint = ui.label("", 14, MUTED, false);
         updateHint();
-        status = ui.label("Connect USB and open PhoneCam on Windows.", 15, MUTED, false);
+        status = ui.label("Connect USB and open PhoneCam on Windows.", 14, MUTED, false);
 
-        LinearLayout actions = ui.row(10);
+        LinearLayout actions = ui.row(12);
         actions.addView(button("Start", true), ui.weighted());
         actions.addView(button("Stop", false), ui.weighted());
 
@@ -107,10 +107,10 @@ public class MainActivity extends Activity {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextColor(primary ? 0xff051611 : TEXT);
-        button.setTextSize(15);
-        button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        button.setBackground(ui.round(primary ? ACCENT : ELEVATED, 16, primary ? ACCENT : BORDER));
+        button.setTextColor(primary ? 0xff0d0d0d : TEXT); // Pure black text on white button, or off-white on charcoal button
+        button.setTextSize(14);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); // Smooth modern font weights
+        button.setBackground(ui.round(primary ? ACCENT : ELEVATED, 12, primary ? ACCENT : BORDER)); // Elegant radius
         button.setOnClickListener(view -> {
             if (primary) startStream();
             else {
@@ -168,7 +168,23 @@ public class MainActivity extends Activity {
     private void setStatus(String message) {
         runOnUiThread(() -> {
             status.setText(message == null ? "Unknown error" : message);
-            statusPill.setText(message != null && message.startsWith("Streaming") ? "Live" : "Ready");
+            if (message != null && message.startsWith("Streaming")) {
+                statusPill.setText("Live");
+                statusPill.setTextColor(0xffa7f3d0);
+                statusPill.setBackground(ui.round(0x1a10a37f, 999, 0x5910a37f));
+            } else if (message != null && (message.contains("error") || message.contains("failed") || message.contains("Exception"))) {
+                statusPill.setText("Error");
+                statusPill.setTextColor(0xfffca5a5);
+                statusPill.setBackground(ui.round(0x1adc2626, 999, 0x59dc2626));
+            } else if (message != null && message.equals("Stopped")) {
+                statusPill.setText("Stopped");
+                statusPill.setTextColor(0xffb4b4b8);
+                statusPill.setBackground(ui.round(0x1a676767, 999, 0x59676767));
+            } else {
+                statusPill.setText("Ready");
+                statusPill.setTextColor(0xffb4b4b8);
+                statusPill.setBackground(ui.round(0x1a676767, 999, 0x59676767));
+            }
         });
     }
 }
