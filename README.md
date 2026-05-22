@@ -32,17 +32,22 @@ PhoneCam is a free and open-source Android-to-Windows virtual camera. It lets yo
 | **Release Notes** | [v1.0.0-beta.4 Release Notes](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-v1.0.0-beta.4-release-notes.md) | View changes, known issues, and limitations |
 | **Source Code** | [ZIP Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.zip) / [TAR.GZ Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.tar.gz) | Download the source code archive |
 
+For past versions and official changelogs, please visit [GitHub Releases](https://github.com/HelloMyNameNikoloz/PhoneCam/releases).
+
 <details>
 <summary>🔑 View File Checksums (SHA-256)</summary>
+
+You can verify the authenticity of your downloaded files by comparing their SHA-256 hashes:
 
 * **PhoneCam-Android-v1.0.0-beta.4.apk**
   `5d2214a97036a76ac87b3044f74562726335de4c485710cb9676d9757ed6a18c`
 * **PhoneCam-Setup-v1.0.0-beta.4.msi**
-  `d75f9359eeb1ae4a3c4b6cfe501f0c7f158a9adbfe758bf741a3be31a1c5efe2`
-* **PhoneCam-v1.0.0-beta.4-checksums.txt**
-  `8c278e1bd5762688105774eca6107f3d877aff8ed6e72abaddf0e2853459a70c`
-* **PhoneCam-v1.0.0-beta.4-release-notes.md**
-  `0bfd9656e7ab92a75781d3e31e3cb456d72d13d538831d90b39ffd4470cdbca5`
+  `2c298c4b46f0a6780037ea4145fb5bf0e9d949ab275f9ab8c5a5b7ade72b8591`
+
+To verify the integrity of a downloaded file in Windows PowerShell, run:
+```powershell
+Get-FileHash -Path ".\PhoneCam-Setup-v1.0.0-beta.4.msi" -Algorithm SHA256
+```
 
 </details>
 
