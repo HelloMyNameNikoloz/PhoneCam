@@ -101,10 +101,18 @@
       Execute="deferred"
       Impersonate="yes"
       Return="ignore" />
+    <CustomAction
+      Id="LaunchPhoneCam"
+      FileRef="PhoneCamExeFile"
+      ExeCommand=""
+      Execute="immediate"
+      Impersonate="yes"
+      Return="asyncNoWait" />
 
     <InstallExecuteSequence>
       <Custom Action="RepairPhoneCamCamera" After="InstallFiles" Condition="NOT REMOVE" />
       <Custom Action="UninstallPhoneCamCamera" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+      <Custom Action="LaunchPhoneCam" After="InstallFinalize" Condition="NOT Installed" />
     </InstallExecuteSequence>
   </Package>
 </Wix>
