@@ -21,7 +21,7 @@ function Get-Wix {
 
     $toolDir = Split-Path -Parent $localWix
     New-Item -ItemType Directory -Path $toolDir -Force | Out-Null
-    & $($dotnet.Source) tool install wix --tool-path $toolDir --version $WixVersion
+    & $($dotnet.Source) tool install wix --tool-path $toolDir --version $WixVersion | Out-Null
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $localWix)) {
         throw "Failed to install WiX CLI into $toolDir."
     }
