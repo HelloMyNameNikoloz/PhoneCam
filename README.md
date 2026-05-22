@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.4"><img src="https://img.shields.io/badge/Version-v1.0.0--beta.4-blue?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.5"><img src="https://img.shields.io/badge/Version-v1.0.0--beta.5-blue?style=flat-square" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-green?style=flat-square" alt="License"></a>
   <a href="docs/windows-support.md"><img src="https://img.shields.io/badge/Platform-Windows%2011-blueviolet?style=flat-square" alt="Platform"></a>
   <a href="android/phonecam-companion"><img src="https://img.shields.io/badge/Android-Companion-orange?style=flat-square" alt="Android Companion"></a>
-  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.4"><img src="https://img.shields.io/badge/Status-Public%20Beta-yellow?style=flat-square" alt="Status"></a>
+  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.5"><img src="https://img.shields.io/badge/Status-Public%20Beta-yellow?style=flat-square" alt="Status"></a>
 </p>
 
 ---
@@ -22,15 +22,15 @@ PhoneCam is a free and open-source Android-to-Windows virtual camera. It lets yo
 
 ---
 
-### 📥 Downloads (v1.0.0-beta.4)
+### 📥 Downloads (v1.0.0-beta.5)
 
 | Component | File / Asset | Description |
 | :--- | :--- | :--- |
-| **Windows Installer** | [PhoneCam-Setup-v1.0.0-beta.4.msi](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Setup-v1.0.0-beta.4.msi) | Install PhoneCam on Windows 11 |
-| **Android Companion** | [PhoneCam-Android-v1.0.0-beta.4.apk](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Android-v1.0.0-beta.4.apk) | Install the companion app on your Android phone |
-| **Checksums** | [PhoneCam-v1.0.0-beta.4-checksums.txt](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-v1.0.0-beta.4-checksums.txt) | Verify integrity of downloaded files (SHA-256) |
-| **Release Notes** | [v1.0.0-beta.4 Release Notes](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-v1.0.0-beta.4-release-notes.md) | View changes, known issues, and limitations |
-| **Source Code** | [ZIP Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.zip) / [TAR.GZ Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.tar.gz) | Download the source code archive |
+| **Windows Installer** | [PhoneCam-Setup-v1.0.0-beta.5.msi](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-Setup-v1.0.0-beta.5.msi) | Install PhoneCam on Windows 11 |
+| **Android Companion** | [PhoneCam-Android-v1.0.0-beta.5.apk](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-Android-v1.0.0-beta.5.apk) | Install the companion app on your Android phone |
+| **Checksums** | [PhoneCam-v1.0.0-beta.5-checksums.txt](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-v1.0.0-beta.5-checksums.txt) | Verify integrity of downloaded files (SHA-256) |
+| **Release Notes** | [v1.0.0-beta.5 Release Notes](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-v1.0.0-beta.5-release-notes.md) | View changes, known issues, and limitations |
+| **Source Code** | [ZIP Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.5.zip) / [TAR.GZ Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.5.tar.gz) | Download the source code archive |
 
 For past versions and official changelogs, please visit [GitHub Releases](https://github.com/HelloMyNameNikoloz/PhoneCam/releases).
 
@@ -39,14 +39,14 @@ For past versions and official changelogs, please visit [GitHub Releases](https:
 
 You can verify the authenticity of your downloaded files by comparing their SHA-256 hashes:
 
-* **PhoneCam-Android-v1.0.0-beta.4.apk**
+* **PhoneCam-Android-v1.0.0-beta.5.apk**
   `5d2214a97036a76ac87b3044f74562726335de4c485710cb9676d9757ed6a18c`
-* **PhoneCam-Setup-v1.0.0-beta.4.msi**
+* **PhoneCam-Setup-v1.0.0-beta.5.msi**
   `2c298c4b46f0a6780037ea4145fb5bf0e9d949ab275f9ab8c5a5b7ade72b8591`
 
 To verify the integrity of a downloaded file in Windows PowerShell, run:
 ```powershell
-Get-FileHash -Path ".\PhoneCam-Setup-v1.0.0-beta.4.msi" -Algorithm SHA256
+Get-FileHash -Path ".\PhoneCam-Setup-v1.0.0-beta.5.msi" -Algorithm SHA256
 ```
 
 </details>
@@ -60,8 +60,8 @@ Get-FileHash -Path ".\PhoneCam-Setup-v1.0.0-beta.4.msi" -Algorithm SHA256
 
 Set up PhoneCam in under 30 seconds:
 
-1. **Install Windows App:** Download and install the [Windows MSI](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Setup-v1.0.0-beta.4.msi).
-2. **Install Android App:** Download and install the [Android APK](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Android-v1.0.0-beta.4.apk) on your phone.
+1. **Install Windows App:** Download and install the [Windows MSI](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-Setup-v1.0.0-beta.5.msi).
+2. **Install Android App:** Download and install the [Android APK](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.5/PhoneCam-Android-v1.0.0-beta.5.apk) on your phone.
 3. **Launch Windows App:** Open **PhoneCam** on Windows.
 4. **Launch Android App:** Open **PhoneCam Companion** on your phone and allow camera permission.
 5. **Connect:** Connect your phone to your PC via a USB cable.
@@ -147,7 +147,7 @@ python -m pip install -r phonecam\requirements.txt
 .\tools\build_driverless_camera.ps1
 
 # 3. Build the Android companion app
-.\tools\build_android_companion.ps1 -Version v1.0.0-beta.4
+.\tools\build_android_companion.ps1 -Version v1.0.0-beta.5
 
 # 4. Compile the Windows PyInstaller executable
 cd phonecam
@@ -155,7 +155,7 @@ python .\build_tools\build_exe.py
 cd ..
 
 # 5. Compile the Windows MSI installer
-.\tools\build_installer.ps1 -Version v1.0.0-beta.4
+.\tools\build_installer.ps1 -Version v1.0.0-beta.5
 ```
 
 ---

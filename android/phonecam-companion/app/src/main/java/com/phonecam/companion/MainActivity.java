@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -67,7 +68,12 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(BG);
 
         LinearLayout brand = ui.row(12);
-        TextView mark = ui.label("▣", 26, ACCENT, true);
+        ImageView mark = new ImageView(this);
+        mark.setImageResource(R.mipmap.ic_launcher);
+        int markSize = ui.dp(36);
+        LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(markSize, markSize);
+        mark.setLayoutParams(markParams);
+
         LinearLayout names = ui.column(2);
         names.addView(ui.label("PhoneCam", 22, TEXT, true)); // Clean font sizing
         names.addView(ui.label("USB Android Camera", 13, MUTED, false));
