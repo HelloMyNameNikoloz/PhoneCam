@@ -44,14 +44,25 @@ $appExe = Join-Path $root "phonecam\dist\PhoneCam.exe"
 $apk = Join-Path $root "phonecam\assets\PhoneCamCompanion.apk"
 $cameraDir = Join-Path $root "native\phonecam_virtual_camera\x64\Release\Driverless"
 $outDir = Join-Path $root "release"
+$iconFile = Join-Path $root "assets\icon.ico"
 $scripts = @(
     "repair_virtual_camera.ps1",
     "uninstall_virtual_camera.ps1",
     "driverless_camera_common.ps1"
 )
 
+# Auto-generate icon.ico if missing
+if (-not (Test-Path $iconFile)) {
+    Write-Host "assets/icon.ico is missing. Attempting to generate it..."
+    $generator = Join-Path $root "tools\assets\generate_icons.ps1"
+    if (Test-Path $generator) {
+        powershell -ExecutionPolicy Bypass -File $generator
+    }
+}
+
 Assert-File $appExe "Build the desktop app first with: python phonecam\build_tools\build_exe.py."
 Assert-File $apk "Build the Android companion first with: .\tools\build_android_companion.ps1."
+Assert-File $iconFile "Build the assets/icon.ico first with: .\tools\assets\generate_icons.ps1."
 Assert-File (Join-Path $cameraDir "PhoneCamCameraCtl.exe") "Build the driverless camera files first with: .\tools\build_driverless_camera.ps1."
 Assert-File (Join-Path $cameraDir "PhoneCamVirtualCamera.dll") "Build the driverless camera files first with: .\tools\build_driverless_camera.ps1."
 
@@ -69,6 +80,7 @@ $wixArgs = @(
     "-d", "SourceRoot=$root",
     "-d", "AppExe=$appExe",
     "-d", "CompanionApk=$apk",
+    "-d", "IconFile=$iconFile",
     "-d", "ToolsDir=$PSScriptRoot",
     "-d", "CameraDir=$cameraDir",
     "-d", "ProductVersion=$(Get-MsiProductVersion $Version)",

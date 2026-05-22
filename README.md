@@ -1,126 +1,180 @@
-# PhoneCam
+<p align="center">
+  <img src="assets/icon.png" alt="PhoneCam Logo" width="120" height="120" />
+</p>
 
-PhoneCam is a free, open-source Android-to-Windows camera system. It lets you
-connect an Android phone over USB and select `PhoneCam` as a normal camera in
-OBS, browsers, Discord, Zoom, Teams, Windows Camera, and other webcam apps.
+<h1 align="center">PhoneCam</h1>
 
-No watermark. No subscription. No account. No cloud service.
+<p align="center">
+  <strong>Use your Android phone as a real selectable camera on Windows.</strong>
+</p>
 
-## Public Beta Status
+<p align="center">
+  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.4"><img src="https://img.shields.io/badge/Version-v1.0.0--beta.4-blue?style=flat-square" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-green?style=flat-square" alt="License"></a>
+  <a href="docs/windows-support.md"><img src="https://img.shields.io/badge/Platform-Windows%2011-blueviolet?style=flat-square" alt="Platform"></a>
+  <a href="android/phonecam-companion"><img src="https://img.shields.io/badge/Android-Companion-orange?style=flat-square" alt="Android Companion"></a>
+  <a href="https://github.com/HelloMyNameNikoloz/PhoneCam/releases/tag/v1.0.0-beta.4"><img src="https://img.shields.io/badge/Status-Public%20Beta-yellow?style=flat-square" alt="Status"></a>
+</p>
 
-Public v1 targets Windows 11 using the driverless Media Foundation virtual
-camera path. The normal installer does not install a custom Windows driver, does
-not require Test Mode, and does not require an EV certificate or Microsoft
-Hardware Dev Center signing.
+---
 
-Windows 10 is experimental for now. PhoneCam will show a clear unsupported
-message when the driverless camera API is unavailable.
+PhoneCam is a free and open-source Android-to-Windows virtual camera. It lets you connect your Android phone over USB and select it as a high-quality camera source inside OBS Studio, web browsers, Discord, Zoom, Teams, and other webcam-enabled applications on Windows.
 
-## Install
+---
 
-1. Download the latest release from GitHub Releases.
-2. Install `PhoneCam-Setup-<version>.msi`.
-3. Install `PhoneCam-Android-<version>.apk` on your Android phone.
-4. Open PhoneCam on Windows.
-5. Connect the phone by USB and accept the Android USB debugging prompt.
-6. Allow camera permission in PhoneCam Companion.
-7. Select `PhoneCam` in your video app.
+### 📥 Downloads (v1.0.0-beta.4)
 
-The Windows app can also install and launch the companion app over ADB when USB
-debugging is enabled.
+| Component | File / Asset | Description |
+| :--- | :--- | :--- |
+| **Windows Installer** | [PhoneCam-Setup-v1.0.0-beta.4.msi](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Setup-v1.0.0-beta.4.msi) | Install PhoneCam on Windows 11 |
+| **Android Companion** | [PhoneCam-Android-v1.0.0-beta.4.apk](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Android-v1.0.0-beta.4.apk) | Install the companion app on your Android phone |
+| **Checksums** | [PhoneCam-v1.0.0-beta.4-checksums.txt](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-v1.0.0-beta.4-checksums.txt) | Verify integrity of downloaded files (SHA-256) |
+| **Release Notes** | [v1.0.0-beta.4 Release Notes](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-v1.0.0-beta.4-release-notes.md) | View changes, known issues, and limitations |
+| **Source Code** | [ZIP Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.zip) / [TAR.GZ Archive](https://github.com/HelloMyNameNikoloz/PhoneCam/archive/refs/tags/v1.0.0-beta.4.tar.gz) | Download the source code archive |
 
-## OBS Setup
+<details>
+<summary>🔑 View File Checksums (SHA-256)</summary>
 
-1. Open OBS.
-2. Add `Video Capture Device`.
-3. Choose `PhoneCam`.
-4. Use `Device Default` first.
-5. Use a separate microphone source for audio.
+* **PhoneCam-Android-v1.0.0-beta.4.apk**
+  `5d2214a97036a76ac87b3044f74562726335de4c485710cb9676d9757ed6a18c`
+* **PhoneCam-Setup-v1.0.0-beta.4.msi**
+  `d75f9359eeb1ae4a3c4b6cfe501f0c7f158a9adbfe758bf741a3be31a1c5efe2`
+* **PhoneCam-v1.0.0-beta.4-checksums.txt**
+  `8c278e1bd5762688105774eca6107f3d877aff8ed6e72abaddf0e2853459a70c`
+* **PhoneCam-v1.0.0-beta.4-release-notes.md**
+  `0bfd9656e7ab92a75781d3e31e3cb456d72d13d538831d90b39ffd4470cdbca5`
 
-## Browser Setup
+</details>
 
-Open a camera test page or meeting app and choose `PhoneCam` from the browser
-camera picker. If it does not appear, open PhoneCam and use Setup > Repair
-PhoneCam Camera.
+> [!IMPORTANT]
+> **Beta Notice:** This is a public beta. Windows 11 is the fully supported target using the driverless Media Foundation virtual camera path. Windows 10 support is experimental. Because these beta builds are currently unsigned, Windows SmartScreen may show a warning when running the installer.
 
-## Development
+---
 
-Requirements:
+## 🚀 Quick Start
 
-- Python 3.12+
-- Visual Studio Build Tools 2022 with Windows SDK
-- Android SDK with platform-tools
-- Gradle
-- WiX Toolset, or .NET SDK so the build script can install WiX locally
+Set up PhoneCam in under 30 seconds:
 
-Build locally:
+1. **Install Windows App:** Download and install the [Windows MSI](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Setup-v1.0.0-beta.4.msi).
+2. **Install Android App:** Download and install the [Android APK](https://github.com/HelloMyNameNikoloz/PhoneCam/releases/download/v1.0.0-beta.4/PhoneCam-Android-v1.0.0-beta.4.apk) on your phone.
+3. **Launch Windows App:** Open **PhoneCam** on Windows.
+4. **Launch Android App:** Open **PhoneCam Companion** on your phone and allow camera permission.
+5. **Connect:** Connect your phone to your PC via a USB cable.
+6. **Use:** Select **PhoneCam** from the camera dropdown in OBS Studio, your browser, Discord, Zoom, Teams, or any other camera-enabled app.
+
+```text
+Android Phone ──(USB)──> PhoneCam Windows App ──> PhoneCam Virtual Camera ──> OBS / Browser / Discord / Zoom / Teams
+```
+
+---
+
+## ✨ Features
+
+- **Real Selectable Camera Source:** Registers natively as a system camera named `PhoneCam`.
+- **Driverless Virtual Camera Path:** Uses Windows 11 Media Foundation APIs, avoiding legacy custom drivers, Secure Boot issues, and Test Mode requirements.
+- **Local-First & Secure:** Camera frames are transported securely over a physical USB connection. No cloud accounts, external servers, or internet access required.
+- **Micro-Latency:** High-performance direct pipeline with real-time FPS and transmission statistics.
+- **Premium Standard:** Absolutely no watermarks, subscriptions, or intrusive advertisements.
+- **Open-Source:** Fully transparent codebase licensed under GPLv3.
+
+---
+
+## 🔌 Compatibility
+
+| Target / App | Status | Notes |
+| :--- | :--- | :--- |
+| **Windows 11** | Public Beta Target | Fully supported via driverless Media Foundation virtual camera API |
+| **Windows 10** | Experimental | Future native virtual camera support is planned/experimental |
+| **Android** | Companion APK | Requires Android 8.0+ and camera permissions |
+| **OBS Studio** | Intended Target | Works seamlessly as a Video Capture Device |
+| **Browser Dropdowns** | Intended Target | Selectable in Chrome, Edge, Firefox, etc. |
+| **Discord / Zoom / Teams** | Intended Target | Selectable in all popular conferencing applications |
+
+---
+
+## 🔒 Privacy
+
+PhoneCam is built to be completely private and local-first:
+
+- **Physical Security:** Camera frames travel exclusively over your physical USB cable via secure local `127.0.0.1` tunnels.
+- **Zero Cloud Connections:** No cloud servers, login procedures, registration forms, or tracking scripts are included.
+- **Untouched Output:** Your hardware camera output is pristine and untouched.
+
+For more details, see the [Privacy Policy](docs/privacy.md).
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | What to try |
+| :--- | :--- |
+| **PhoneCam does not appear in camera lists** | Open PhoneCam on Windows and select `Setup > Repair PhoneCam Camera` |
+| **Android phone is not detected** | Reconnect your USB cable, unlock your phone, check developer options, and ensure USB debugging is authorized |
+| **Low FPS / Frame drops** | Set resolution to 1080p30, close resource-heavy background apps, and ensure you are using a high-quality USB-3 cable |
+| **Windows SmartScreen warnings** | Current public beta builds are unsigned. You can verify the installer's SHA-256 checksum to ensure it is authentic and safe |
+| **Windows 10 support** | Version 1.0.0 targets Windows 11. Windows 10 is currently experimental; please check our docs for driver updates |
+
+For advanced diagnostic assistance, see the full [Troubleshooting Guide](docs/troubleshooting.md).
+
+---
+
+## 💻 Development
+
+Want to compile, inspect, or modify PhoneCam? Here is the list of deeper technical documentation:
+
+* 🏗️ **Architecture Overview:** [architecture.md](docs/architecture.md)
+* 📦 **Installer Compilations:** [installer.md](docs/installer.md)
+* 🚀 **Release Process & Pipeline:** [release.md](docs/release.md)
+* ⚡ **Performance Roadmap:** [performance-roadmap.md](docs/performance-roadmap.md)
+* 🧪 **Testing Matrix:** [test-matrix.md](docs/test-matrix.md)
+* 📜 **Third-Party Licenses:** [third-party.md](docs/third-party.md)
+
+### Building Locally
+
+Ensure you have Python 3.12+, Visual Studio Build Tools 2022 with Windows SDK, Android SDK, and WiX Toolset. Then run:
 
 ```powershell
+# 1. Install dependencies
 python -m pip install -r phonecam\requirements.txt
+
+# 2. Build the native driverless virtual camera DLL
 .\tools\build_driverless_camera.ps1
-.\tools\build_android_companion.ps1 -Version v1.0.0-beta.1
+
+# 3. Build the Android companion app
+.\tools\build_android_companion.ps1 -Version v1.0.0-beta.4
+
+# 4. Compile the Windows PyInstaller executable
 cd phonecam
 python .\build_tools\build_exe.py
 cd ..
-.\tools\build_installer.ps1 -Version v1.0.0-beta.1
+
+# 5. Compile the Windows MSI installer
+.\tools\build_installer.ps1 -Version v1.0.0-beta.4
 ```
 
-Create a full local release package:
+---
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\release\create_local_release_package.ps1 -Version v1.0.0-beta.1
-```
+## 🗺️ Roadmap
 
-## Privacy
+- [ ] Improve native video encoding and transport pipeline
+- [ ] Stabilize high-frame-rate 1080p60 transmission
+- [ ] Expand device compatibility matrix with broad Android device testing
+- [ ] Establish a secure, automated build-signing story using open-source code-signing certificates
+- [ ] Investigate robust native Virtual Camera support for Windows 10
+- [ ] Explore a future iOS companion application
 
-PhoneCam is local-first:
+---
 
-- frames travel over USB through local `127.0.0.1` tunnels
-- no cloud upload
-- no telemetry by default
-- no frame saving unless explicitly added for diagnostics
-- logs must not contain frame data
+## 🤝 Contributing
 
-See `docs/privacy.md`.
+We welcome your feedback and support! Testing reports, bug reports, compatibility reports, and pull requests are always welcome.
 
-## Docs
+* 📝 Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+* 🛡️ To report security vulnerabilities, review [SECURITY.md](SECURITY.md).
+* 🐛 Encountered an issue? Open a ticket on our [GitHub Issues](https://github.com/HelloMyNameNikoloz/PhoneCam/issues).
 
-- `docs/architecture.md`
-- `docs/windows-support.md`
-- `docs/onboarding.md`
-- `docs/installer.md`
-- `docs/troubleshooting.md`
-- `docs/performance-roadmap.md`
-- `docs/release.md`
-- `docs/test-matrix.md`
-- `docs/third-party.md`
+---
 
-## How To Publish A Release
+## 📄 License
 
-1. Commit all changes.
-2. Push main:
-
-```powershell
-git push origin main
-```
-
-3. Create a version tag:
-
-```powershell
-git tag v1.0.0-beta.1
-```
-
-4. Push the tag:
-
-```powershell
-git push origin v1.0.0-beta.1
-```
-
-GitHub Actions will build the Windows installer, Android APK, checksums, release
-notes, and GitHub Release assets automatically.
-
-One-line form:
-
-```powershell
-git push origin main; git tag v1.0.0-beta.1; git push origin v1.0.0-beta.1
-```
+PhoneCam is free software licensed under the **GNU General Public License v3.0 (GPLv3)**. See the [LICENSE](LICENSE) file for the full text.

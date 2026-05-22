@@ -10,6 +10,10 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of PhoneCam is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- App Icon Configuration -->
+    <Icon Id="PhoneCamIcon" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="PhoneCamIcon" />
+
     <Feature Id="MainFeature" Title="PhoneCam" Level="1">
       <ComponentGroupRef Id="PhoneCamFiles" />
       <ComponentGroupRef Id="PhoneCamFilesAssets" />
@@ -78,7 +82,7 @@
     </Component>
 
     <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
-      <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" />
+      <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" IconReference="PhoneCamIcon" />
       <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
       <RegistryValue Root="HKLM" Key="Software\PhoneCam" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
     </Component>

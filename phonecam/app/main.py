@@ -41,7 +41,7 @@ def main() -> None:
         bridge.shutdown()
         window.destroy()
 
-    tray = TrayController(asset_path("logo.png"), show_window, quit_app)
+    tray = TrayController(asset_path("icon.ico"), show_window, quit_app)
 
     def handle_closing() -> bool:
         if tray and tray.quitting:
