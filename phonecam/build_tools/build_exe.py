@@ -11,6 +11,17 @@ def main() -> int:
     icon = root / "assets" / "icon.ico"
     companion = root / "assets" / "PhoneCamCompanion.apk"
     add_sep = ";"
+    
+    # Ensure unified icon exists (or generate it)
+    if not icon.exists():
+        print(f"assets/icon.ico is missing. Attempting to generate it...")
+        generator = repo / "tools" / "assets" / "generate_icons.py"
+        if generator.exists():
+            subprocess.call([sys.executable, str(generator)])
+    
+    if not icon.exists():
+        raise SystemExit(f"Error: Unified icon was not found and could not be generated at: {icon}")
+        
     if not companion.exists():
         raise SystemExit("Missing assets/PhoneCamCompanion.apk. Run ..\\tools\\build_android_companion.ps1 first.")
     command = [

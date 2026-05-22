@@ -43,3 +43,26 @@ camera apps, use a direct USB cable, and keep Live Preview off while testing.
 
 Unsigned public beta builds may show Windows SmartScreen warnings. Verify the
 SHA256 checksums published with the GitHub Release.
+
+## Wrong or Cached Icon in Start Menu or Windows Search
+
+Windows aggressively caches application and shortcut icons. If you reinstall PhoneCam or update to a new version, Windows Search may temporarily display a generic placeholder or an old cached icon instead of our official icon.
+
+To resolve this issue:
+
+1. **Perform a Clean Install:** Uninstall the old version of PhoneCam completely before installing the new MSI.
+2. **Restart Windows Explorer:**
+   - Open **Task Manager** (`Ctrl + Shift + Esc`).
+   - Find **Windows Explorer** in the processes list.
+   - Right-click and select **Restart**.
+3. **Reboot your system:** A simple system reboot will force the Windows shell to rebuild its Start Menu and Search index caches.
+4. **Clear the Icon Cache (Advanced):**
+   - Open Command Prompt or PowerShell as Administrator and run:
+     ```cmd
+     ie4uinit.exe -show
+     taskkill /IM explorer.exe /F
+     DEL /A /Q /F "%localappdata%\IconCache.db"
+     DEL /A /F /Q "%localappdata%\Microsoft\Windows\Explorer\iconcache*"
+     shutdown /r /f /t 00
+     ```
+     *(Note: The last command will reboot your system immediately).*

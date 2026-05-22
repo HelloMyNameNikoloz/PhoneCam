@@ -112,6 +112,7 @@ For more details, see the [Privacy Policy](docs/privacy.md).
 | **Android phone is not detected** | Reconnect your USB cable, unlock your phone, check developer options, and ensure USB debugging is authorized |
 | **Low FPS / Frame drops** | Set resolution to 1080p30, close resource-heavy background apps, and ensure you are using a high-quality USB-3 cable |
 | **Windows SmartScreen warnings** | Current public beta builds are unsigned. You can verify the installer's SHA-256 checksum to ensure it is authentic and safe |
+| **Wrong or cached application icon** | Reinstall with a clean uninstall, restart Windows Explorer in Task Manager, or reboot to clear the Windows icon cache |
 | **Windows 10 support** | Version 1.0.0 targets Windows 11. Windows 10 is currently experimental; please check our docs for driver updates |
 
 For advanced diagnostic assistance, see the full [Troubleshooting Guide](docs/troubleshooting.md).

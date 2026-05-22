@@ -82,7 +82,7 @@
     </Component>
 
     <Component Id="StartMenuShortcut" Directory="ApplicationProgramsFolder">
-      <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" IconReference="PhoneCamIcon" />
+      <Shortcut Id="PhoneCamShortcut" Name="PhoneCam" Target="[InstallFolder]PhoneCam.exe" />
       <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
       <RegistryValue Root="HKLM" Key="Software\PhoneCam" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
     </Component>

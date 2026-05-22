@@ -7,6 +7,9 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 
+Write-Host "Generating unified PhoneCam icons..."
+& (Join-Path $PSScriptRoot "assets\generate_icons.ps1")
+
 Write-Host "Building Android companion..."
 $androidArgs = @{ Version = $Version }
 if ($AndroidOutputDir) { $androidArgs.OutputDir = $AndroidOutputDir }
