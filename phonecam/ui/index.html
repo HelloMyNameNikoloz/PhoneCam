@@ -87,7 +87,9 @@
             <li>Confirm the preview is live, then select PhoneCam in OBS or your video app.</li>
           </ol>
           <div id="setup-message" class="notice"></div>
+          <button id="register-camera" class="button primary" type="button">Register PhoneCam Camera</button>
           <button id="repair-camera" class="button" type="button">Repair PhoneCam Camera</button>
+          <button id="unregister-camera" class="button" type="button">Unregister PhoneCam Camera</button>
           <div class="notice">
             PhoneCam is local USB only by default. It does not use cloud services,
             save recordings, or collect telemetry.
@@ -101,6 +103,7 @@
         <section class="side-panel" data-panel-view="about">
           <h2>PhoneCam</h2>
           <p>PhoneCam bridges Android camera frames into a registered Windows camera device.</p>
+          <p id="app-version" class="muted">Version 0.1.0-dev</p>
           <p class="muted">Close the PhoneCam control window to keep it running in the system tray. Quit from the tray menu when finished.</p>
           <p class="muted">Open source under GPLv3. No watermark, no account, no subscription.</p>
         </section>

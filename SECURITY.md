@@ -6,7 +6,7 @@ enable remote access, or install untrusted camera components as security issues.
 ## Supported Versions
 
 Only tagged beta and stable releases are supported. Development builds are best
-effort and may require Windows test signing.
+effort.
 
 ## Reporting a Vulnerability
 
@@ -15,7 +15,7 @@ then, contact the maintainers privately and include:
 
 - PhoneCam version or commit.
 - Windows version and Android version.
-- Whether the virtual camera driver is test-signed or Microsoft-signed.
+- Whether the driverless camera registration succeeds in PhoneCam Setup.
 - Exact steps to reproduce.
 - Logs with camera frames and personal identifiers removed.
 

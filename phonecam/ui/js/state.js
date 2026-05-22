@@ -36,6 +36,7 @@ window.PhoneCamState = {
     missingAdb: false,
     missingCompanionApk: false,
     missingScrcpy: false,
+    version: "0.1.0-dev",
     logs: [],
   },
 

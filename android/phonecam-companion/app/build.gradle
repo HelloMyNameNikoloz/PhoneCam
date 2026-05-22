@@ -2,6 +2,9 @@ plugins {
     id "com.android.application"
 }
 
+def phonecamVersionNameValue = project.hasProperty("phonecamVersionName") ? project.property("phonecamVersionName").toString() : "0.3.0"
+def phonecamVersionCodeValue = project.hasProperty("phonecamVersionCode") ? project.property("phonecamVersionCode").toString() : "1"
+
 android {
     namespace "com.phonecam.companion"
     compileSdk 35
@@ -10,8 +13,8 @@ android {
         applicationId "com.phonecam.companion"
         minSdk 23
         targetSdk 35
-        versionCode 1
-        versionName "0.3.0"
+        versionCode phonecamVersionCodeValue.toInteger()
+        versionName phonecamVersionNameValue
     }
 
     compileOptions {

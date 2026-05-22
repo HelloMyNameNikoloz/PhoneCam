@@ -12,7 +12,7 @@ Show whether the Windows camera device is installed:
 - Repair required
 
 If missing, show a single action: `Repair PhoneCam Camera`. The action should
-request administrator privileges and explain why.
+use the Windows 11 driverless repair path for the current user.
 
 ## Step 2: Connect Android
 
@@ -60,7 +60,7 @@ Offer quick checks:
 
 Use targeted messages instead of walls of text:
 
-- Camera device missing: repair driver installation.
+- Camera device missing: repair driverless camera registration.
 - Driver installed but no frames: check Android permission and USB tunnel.
 - Unauthorized: unlock phone and accept RSA prompt.
 - Offline: reconnect USB or change USB mode.

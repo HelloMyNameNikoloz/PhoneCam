@@ -1,42 +1,51 @@
-# Installer Strategy
+# Installer
 
-PhoneCam will use WiX Toolset v4 for the Windows installer.
+PhoneCam uses a WiX MSI for public Windows builds.
 
-The MSI must install:
+The MSI installs:
 
 - `PhoneCam.exe`
-- bundled ADB runtime files
-- Android companion APK
-- Microsoft-signed PhoneCam virtual camera driver package
+- Android companion APK under `assets/`
+- driverless camera binaries under `camera/`
+- repair/uninstall scripts under `tools/`
 - Start Menu shortcut
-- repair and uninstall actions
+- `%ProgramData%\PhoneCam`
 
-The MSI must not require users to disable Secure Boot or enable test signing.
-Contributor-only test signing remains documented separately for driver
-development.
+The MSI does not install a custom Windows driver package. It does not require
+Test Mode, unsigned-driver workflows, WDK, Visual Studio, Python, Android Studio,
+or Microsoft Hardware Dev Center signing on the user machine.
 
-Planned custom actions:
-
-- Install or repair the PhoneCam camera device.
-- Remove the camera device and PhoneCam driver package during uninstall.
-- Clear `%ProgramData%\PhoneCam` runtime files during uninstall.
-
-The first WiX project in this repository is a packaging skeleton. It is not a
-public-release installer until the driver package is Microsoft-signed. The
-current skeleton stages the app, companion APK, and signed driver package files;
-driver install/repair custom actions are still a release blocker.
-
-Build the MSI after producing the desktop EXE, Android APK, and native driver:
+Build:
 
 ```powershell
-.\tools\build_installer.ps1
+.\tools\build_driverless_camera.ps1
+.\tools\build_android_companion.ps1 -Version v1.0.0-beta.1
+cd phonecam
+python .\build_tools\build_exe.py
+cd ..
+.\tools\build_installer.ps1 -Version v1.0.0-beta.1
 ```
 
-For public release validation, require a trusted signed catalog:
+Output:
 
-```powershell
-.\tools\build_installer.ps1 -RequireSignedDriver
+```text
+release/PhoneCam-Setup-v1.0.0-beta.1.msi
 ```
 
-The script bootstraps a project-local WiX CLI under `.tools/wix` if `wix.exe`
-is not already available. The MSI is written to `release/`.
+Repair:
+
+- The app registers or repairs the driverless camera for the current Windows
+  user on startup when needed.
+- Setup > Repair PhoneCam Camera runs the same driverless repair path.
+- The MSI also stages repair scripts for support and uninstall cleanup.
+
+Uninstall:
+
+- Removes installed app files.
+- Attempts to unregister the driverless camera.
+- Removes PhoneCam runtime frame/stat files from `%ProgramData%\PhoneCam`.
+
+Unsigned beta note:
+
+The public beta can be unsigned. Users may see SmartScreen warnings. Release
+assets include SHA256 checksums so users can verify downloads.

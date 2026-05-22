@@ -1,0 +1,17 @@
+name: Low FPS
+description: Report stutter, lag, or frame rate below target
+title: "[Low FPS]: "
+labels: ["performance"]
+body:
+  - type: input
+    id: mode
+    attributes:
+      label: Resolution and FPS
+      placeholder: 1920x1080 at 30 FPS
+  - type: textarea
+    id: stats
+    attributes:
+      label: PhoneCam live stats
+      description: Include Target, Capture, Bridge, Output, Dropped, and Latency.
+    validations:
+      required: true

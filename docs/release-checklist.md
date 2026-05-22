@@ -2,10 +2,20 @@
 
 ## Repository Hygiene
 
-- No generated EXE, APK, MSI, pycache, native x64/Release outputs, logs, local
-  certs, or build directories are tracked.
+- No generated EXE, APK, MSI, ZIP, native `x64/`, Android `build/`, Python
+  `build/`, Python `dist/`, logs, pycache, local certs, or local paths are
+  tracked.
 - `LICENSE`, `NOTICE`, `SECURITY.md`, and `CONTRIBUTING.md` are present.
-- Third-party binary versions and licenses are documented.
+- Third-party licenses are documented.
+
+## Public V1 Architecture
+
+- Windows 11 driverless Media Foundation virtual camera path is documented.
+- Normal installer does not install a custom driver package.
+- Normal installer does not require Test Mode.
+- Normal installer does not require EV certificate or Hardware Dev Center
+  signing.
+- Legacy driver path is clearly experimental.
 
 ## Stability Gate
 
@@ -17,18 +27,15 @@
 
 ## Installer Gate
 
-- WiX MSI installs PhoneCam on clean Windows 10 and Windows 11.
-- Driver package is Microsoft-signed.
-- Secure Boot remains enabled.
-- Repair action restores missing camera registration.
-- Uninstall removes app files, camera device, driver package, and ProgramData
-  runtime files.
+- Clean Windows 11 install works from MSI.
+- PhoneCam opens from Start Menu.
+- Repair action restores camera registration.
+- Uninstall removes app files and runtime files.
 
-## Public Beta Artifacts
+## Public Beta Assets
 
-- MSI installer.
-- Android companion APK.
-- SHA256 checksums.
-- Known issues.
-- Test matrix.
-- Screenshots for README.
+- `PhoneCam-Setup-<version>.msi`
+- `PhoneCam-Android-<version>.apk`
+- SHA256 checksums
+- Release notes
+- Known limitations

@@ -60,3 +60,17 @@ def repair_script_path() -> Path:
     if override:
         return Path(override)
     return tools_dir() / "repair_virtual_camera.ps1"
+
+
+def camera_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "camera"
+    return repo_root() / "native" / "phonecam_virtual_camera" / "x64" / "Release" / "Driverless"
+
+
+def camera_tool_path() -> Path:
+    return camera_dir() / "PhoneCamCameraCtl.exe"
+
+
+def media_source_path() -> Path:
+    return camera_dir() / "PhoneCamVirtualCamera.dll"

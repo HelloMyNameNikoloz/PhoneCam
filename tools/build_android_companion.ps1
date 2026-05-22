@@ -1,4 +1,6 @@
 param(
+    [string]$Version = "0.3.0",
+    [string]$OutputDir = "",
     [switch]$Install
 )
 
@@ -17,7 +19,19 @@ if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
 
 Push-Location $Project
 try {
-    gradle :app:assembleDebug
+    $versionName = $Version.TrimStart("v")
+    $digits = [regex]::Matches($versionName, "\d+") | ForEach-Object { $_.Value }
+    $versionCode = if ($digits.Count -gt 0) {
+        [int](($digits | Select-Object -First 3) -join "")
+    }
+    else {
+        1
+    }
+
+    gradle :app:assembleDebug "-PphonecamVersionName=$versionName" "-PphonecamVersionCode=$versionCode"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Android companion build failed."
+    }
     $Apk = Join-Path $Project "app\build\outputs\apk\debug\app-debug.apk"
     if (-not (Test-Path $Apk)) {
         throw "Build finished but APK was not found at $Apk"
@@ -26,6 +40,13 @@ try {
     $AssetApk = Join-Path $Root "phonecam\assets\PhoneCamCompanion.apk"
     Copy-Item -Path $Apk -Destination $AssetApk -Force
     Write-Host "Copied companion APK to $AssetApk"
+
+    if ($OutputDir) {
+        New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+        $NamedApk = Join-Path $OutputDir "PhoneCam-Android-$Version.apk"
+        Copy-Item -Path $Apk -Destination $NamedApk -Force
+        Write-Host "Copied release APK to $NamedApk"
+    }
 
     if ($Install) {
         $Adb = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"

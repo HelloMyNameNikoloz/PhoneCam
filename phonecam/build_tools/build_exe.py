@@ -32,13 +32,9 @@ def main() -> int:
         "--add-data",
         f"{repo / 'tools' / 'repair_virtual_camera.ps1'}{add_sep}tools",
         "--add-data",
-        f"{repo / 'tools' / 'install_virtual_camera.ps1'}{add_sep}tools",
-        "--add-data",
-        f"{repo / 'tools' / 'check_virtual_camera.ps1'}{add_sep}tools",
-        "--add-data",
-        f"{repo / 'tools' / 'native_camera_common.ps1'}{add_sep}tools",
-        "--add-data",
         f"{repo / 'tools' / 'uninstall_virtual_camera.ps1'}{add_sep}tools",
+        "--add-data",
+        f"{repo / 'tools' / 'driverless_camera_common.ps1'}{add_sep}tools",
         str(root / "app" / "main.py"),
     ]
     if icon.exists():

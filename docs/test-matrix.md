@@ -6,10 +6,10 @@ Use this matrix before every public beta.
 
 | Area | Windows 10 | Windows 11 |
 | --- | --- | --- |
-| Clean install with Secure Boot enabled | Pending | Pending |
+| Clean install with Secure Boot enabled | Experimental | Pending |
 | Repair install restores PhoneCam camera | Pending | Pending |
 | Uninstall removes app and camera device | Pending | Pending |
-| Non-admin launch has clear repair guidance | Pending | Pending |
+| Non-admin launch has clear unsupported/repair guidance | Pending | Pending |
 
 ## Camera clients
 

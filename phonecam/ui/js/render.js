@@ -8,7 +8,13 @@ window.PhoneCamRender = {
     this.sourceCard(state);
     this.setupMessage(state);
     this.stage(state);
+    this.version(state);
     this.logs(state.logs);
+  },
+
+  version(state) {
+    const target = document.querySelector("#app-version");
+    if (target) target.textContent = `Version ${state.version || "0.1.0-dev"}`;
   },
 
   statusPill(state) {

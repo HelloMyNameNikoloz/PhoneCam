@@ -19,5 +19,7 @@ Runtime files:
 - `%ProgramData%\PhoneCam\native_settings.txt` contains selected resolution/FPS.
 - `%APPDATA%\PhoneCam\settings.json` contains user settings.
 
-Before public release, the app must clear or black out the frame buffer on exit
-and the installer must remove runtime files during uninstall.
+The app should clear or black out the frame buffer on stop/exit. The installer
+removes runtime files during uninstall. Diagnostic exports must not include frame
+payloads, usernames, or full device serials unless the user explicitly chooses to
+share them.

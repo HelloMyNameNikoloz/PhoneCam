@@ -9,10 +9,8 @@ if ($camera) {
     $camera | Format-List Status,Class,FriendlyName,InstanceId
 } else {
     Write-Host "PhoneCam camera device is not registered."
-    Write-Host "Build, sign, and install the native package:"
-    Write-Host ".\tools\build_native_camera.ps1"
-    Write-Host ".\tools\sign_virtual_camera_test.ps1"
-    Write-Host ".\tools\install_virtual_camera.ps1"
+    Write-Host "Repair the Windows 11 driverless camera registration:"
+    Write-Host ".\tools\repair_virtual_camera.ps1"
 }
 
 $framePath = Join-Path $env:ProgramData "PhoneCam\framebuffer.bin"

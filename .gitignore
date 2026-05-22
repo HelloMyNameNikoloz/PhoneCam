@@ -1,7 +1,7 @@
 .vs/
 .tools/
 artifacts/
-release/
+/release/
 build/
 out/
 *.user
@@ -22,6 +22,7 @@ phonecam/build/
 phonecam/*.spec
 phonecam/app/__pycache__/
 android/**/build/
+android/**/release/
 android/**/.gradle/
 android/**/local.properties
 phonecam/assets/PhoneCamCompanion.apk

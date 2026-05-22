@@ -1,0 +1,20 @@
+name: Camera not detected
+description: PhoneCam does not appear in an app's camera dropdown
+title: "[Camera not detected]: "
+labels: ["camera-registration"]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App that cannot see PhoneCam
+      placeholder: OBS, Chrome, Teams, Discord
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+    validations:
+      required: true

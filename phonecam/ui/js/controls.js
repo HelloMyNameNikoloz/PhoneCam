@@ -44,6 +44,10 @@ window.PhoneCamControls = {
     if (stop) this.stopCamera();
     const repair = event.target.closest("#repair-camera");
     if (repair) this.repairVirtualCamera();
+    const register = event.target.closest("#register-camera");
+    if (register) this.registerVirtualCamera();
+    const unregister = event.target.closest("#unregister-camera");
+    if (unregister) this.unregisterVirtualCamera();
   },
 
   async startCamera() {
@@ -60,6 +64,18 @@ window.PhoneCamControls = {
 
   async repairVirtualCamera() {
     const status = await window.PhoneCamApi.repairVirtualCamera();
+    window.PhoneCamState.merge(status);
+    window.PhoneCamRender.render();
+  },
+
+  async registerVirtualCamera() {
+    const status = await window.PhoneCamApi.registerVirtualCamera();
+    window.PhoneCamState.merge(status);
+    window.PhoneCamRender.render();
+  },
+
+  async unregisterVirtualCamera() {
+    const status = await window.PhoneCamApi.unregisterVirtualCamera();
     window.PhoneCamState.merge(status);
     window.PhoneCamRender.render();
   },

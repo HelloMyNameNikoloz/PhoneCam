@@ -5,7 +5,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="PhoneCam"
+        android:label="PhoneCam Companion"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity

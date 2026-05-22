@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a PhoneCam bug
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: PhoneCam version
+      placeholder: v1.0.0-beta.1
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Do not include screenshots or private frame data.

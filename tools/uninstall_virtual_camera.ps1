@@ -1,47 +1,19 @@
 $ErrorActionPreference = "Stop"
-. "$PSScriptRoot\native_camera_common.ps1"
+. "$PSScriptRoot\driverless_camera_common.ps1"
 
-function Get-PhoneCamDriverPackages {
-    $packages = @()
-    $current = @{}
-    foreach ($line in (& pnputil /enum-drivers /class Camera)) {
-        if ($line -match "^\s*$") {
-            if (Test-PhoneCamPackage $current) { $packages += $current }
-            $current = @{}
-            continue
-        }
-        if ($line -match "^\s*Published Name:\s*(.+)$") { $current.PublishedName = $Matches[1].Trim() }
-        if ($line -match "^\s*Original Name:\s*(.+)$") { $current.OriginalName = $Matches[1].Trim() }
-        if ($line -match "^\s*Provider Name:\s*(.+)$") { $current.ProviderName = $Matches[1].Trim() }
-    }
-    if (Test-PhoneCamPackage $current) { $packages += $current }
-    return $packages
+Write-Host "Unregistering the PhoneCam Windows 11 driverless virtual camera."
+try {
+    Invoke-DriverlessCamera -Action unregister
 }
-
-function Test-PhoneCamPackage($package) {
-    return $package.PublishedName -and
-        $package.OriginalName -eq "phonecamcameradriver.inf" -and
-        $package.ProviderName -eq "PhoneCam"
-}
-
-Assert-Elevated "uninstall the PhoneCam virtual camera"
-
-Get-PnpDevice -Class Camera -ErrorAction SilentlyContinue |
-    Where-Object { $_.FriendlyName -eq "PhoneCam" -and $_.InstanceId -like "ROOT\DEVGEN\*" } |
-    ForEach-Object {
-        Write-Host "Removing PhoneCam device: $($_.InstanceId)"
-        & pnputil /remove-device $_.InstanceId
-    }
-
-foreach ($driver in Get-PhoneCamDriverPackages) {
-    Write-Host "Deleting PhoneCam driver package: $($driver.PublishedName)"
-    & pnputil /delete-driver $driver.PublishedName /uninstall /force
+catch {
+    Write-Warning $_.Exception.Message
 }
 
 $dataDir = Join-Path $env:ProgramData "PhoneCam"
 if (Test-Path $dataDir) {
-    Remove-Item (Join-Path $dataDir "framebuffer.bin") -Force -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $dataDir "native_stats.bin") -Force -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $dataDir "native_settings.txt") -Force -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $dataDir "native_camera.log") -Force -ErrorAction SilentlyContinue
+    foreach ($file in @("framebuffer.bin", "native_stats.bin", "native_settings.txt", "native_camera.log")) {
+        Remove-Item (Join-Path $dataDir $file) -Force -ErrorAction SilentlyContinue
+    }
 }
+
+Write-Host "PhoneCam camera cleanup completed."

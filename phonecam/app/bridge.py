@@ -1,19 +1,20 @@
 from __future__ import annotations
 
-import json
 import time
 from typing import Any, Dict, List
 
 from app.companion_manager import CompanionManager
 from app.config import DEFAULT_SETTINGS
 from app.device_detector import DeviceDetector
+from app.driverless_camera import run_driverless_camera
 from app.frame_receiver import FrameReceiver
 from app.logger import MemoryLogger
 from app.native_settings import write_native_settings
-from app.paths import adb_path, companion_apk_path, repair_script_path, settings_path
-from app.process_utils import run_capture
-from app.repair import launch_repair
+from app.paths import adb_path, companion_apk_path
+from app.settings_store import load_settings, save_settings
+from app.usb_tunnel import ensure_reverse_tunnels
 from app.virtual_camera_status import is_phonecam_installed
+from app.version import APP_VERSION
 
 
 class PhoneCamBridge:
@@ -22,7 +23,7 @@ class PhoneCamBridge:
         self.detector = DeviceDetector(adb_path())
         self.receiver = FrameReceiver(self._receiver_log)
         self.companion = CompanionManager(adb_path(), companion_apk_path(), self.logger)
-        self.settings = self.load_settings()
+        self.settings = load_settings()
         write_native_settings(self.settings)
         self.devices: List[Dict[str, str]] = []
         self.device_error: str | None = None
@@ -30,6 +31,7 @@ class PhoneCamBridge:
         self._virtual_camera_checked = 0.0
         self._virtual_camera_installed = False
         self.receiver.start()
+        self._ensure_virtual_camera_registered()
         self.logger.info("PhoneCam initialized")
 
     def get_status(self) -> Dict[str, Any]:
@@ -58,28 +60,35 @@ class PhoneCamBridge:
         return self.logger.all()
 
     def repair_virtual_camera(self) -> Dict[str, Any]:
-        return self._status_payload(launch_repair(repair_script_path(), self.logger))
+        ok, message = run_driverless_camera("repair")
+        if ok:
+            self._virtual_camera_checked = 0
+            self.logger.success("PhoneCam camera registered for this Windows user")
+            return self._status_payload()
+        self.logger.error(message)
+        return self._status_payload(message)
+
+    def register_virtual_camera(self) -> Dict[str, Any]:
+        return self.repair_virtual_camera()
+
+    def unregister_virtual_camera(self) -> Dict[str, Any]:
+        ok, message = run_driverless_camera("unregister")
+        self._virtual_camera_checked = 0
+        if ok:
+            self.logger.info("PhoneCam camera unregistered for this Windows user")
+            return self._status_payload()
+        return self._status_payload(message)
 
     def save_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **self.settings, **settings}
-        self.settings = self._sanitize_settings(merged)
+        self.settings = save_settings(merged)
         write_native_settings(self.settings)
-        target = settings_path()
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(self.settings, indent=2), encoding="utf-8")
         self.receiver.reset_performance()
         self._restart_if_running()
         return self.settings
 
     def load_settings(self) -> Dict[str, Any]:
-        path = settings_path()
-        if not path.exists():
-            return DEFAULT_SETTINGS.copy()
-        try:
-            loaded = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            return DEFAULT_SETTINGS.copy()
-        return self._sanitize_settings({**DEFAULT_SETTINGS, **loaded})
+        return load_settings()
 
     def shutdown(self) -> None:
         self.receiver.stop()
@@ -101,6 +110,19 @@ class PhoneCamBridge:
         self._ensure_usb_reverse()
         self.companion.reset()
         self._ensure_companion_running()
+
+    def _ensure_virtual_camera_registered(self) -> None:
+        if is_phonecam_installed():
+            self._virtual_camera_installed = True
+            self._virtual_camera_checked = time.monotonic()
+            return
+        ok, message = run_driverless_camera("repair")
+        if ok:
+            self._virtual_camera_installed = True
+            self._virtual_camera_checked = time.monotonic()
+            self.logger.success("PhoneCam camera registered for this Windows user")
+        else:
+            self.logger.warning(message)
 
     def _selected_ready_device(self) -> Dict[str, str] | None:
         ready = [d for d in self.devices if d["status"] == "device"]
@@ -125,6 +147,7 @@ class PhoneCamBridge:
             "missingAdb": not adb_path().exists(),
             "missingCompanionApk": not companion_apk_path().exists(),
             "missingScrcpy": False,
+            "version": APP_VERSION,
             "logs": self.get_logs(),
         }
 
@@ -156,22 +179,7 @@ class PhoneCamBridge:
     def _ensure_usb_reverse(self) -> None:
         device = self._selected_ready_device()
         device_id = device["id"] if device else None
-        if not device_id:
-            self._reverse_device = None
-        if not device_id or self._reverse_device == device_id or not adb_path().exists():
-            return
-        ok = self._reverse_port(device_id, 4767) and self._reverse_port(device_id, 4768)
-        if ok:
-            self._reverse_device = device_id
-            self.logger.success("USB frame tunnels ready for PhoneCam Android companion")
-
-    def _reverse_port(self, device_id: str, port: int) -> bool:
-        command = [str(adb_path()), "-s", device_id, "reverse", f"tcp:{port}", f"tcp:{port}"]
-        result = run_capture(command, timeout=5)
-        if result.returncode == 0:
-            return True
-        self.logger.warning((result.stderr or f"ADB reverse failed for port {port}").strip())
-        return False
+        self._reverse_device = ensure_reverse_tunnels(adb_path(), device_id, self._reverse_device, self.logger)
 
     def _ensure_companion_running(self) -> None:
         device = self._selected_ready_device()
@@ -187,9 +195,3 @@ class PhoneCamBridge:
         self._virtual_camera_checked = time.monotonic()
         self._virtual_camera_installed = is_phonecam_installed()
         return self._virtual_camera_installed
-
-    @staticmethod
-    def _sanitize_settings(settings: Dict[str, Any]) -> Dict[str, Any]:
-        clean = {key: settings.get(key, value) for key, value in DEFAULT_SETTINGS.items()}
-        clean["fps"] = int(clean.get("fps", 30))
-        return clean
