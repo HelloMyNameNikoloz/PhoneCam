@@ -40,9 +40,9 @@ For past versions and official changelogs, please visit [GitHub Releases](https:
 You can verify the authenticity of your downloaded files by comparing their SHA-256 hashes:
 
 * **PhoneCam-Android-v1.0.0-beta.5.apk**
-  `5d2214a97036a76ac87b3044f74562726335de4c485710cb9676d9757ed6a18c`
+  `b2d1155e098e18fd347be5f4581fd812ce584b68f75be87d883486d604b72bff`
 * **PhoneCam-Setup-v1.0.0-beta.5.msi**
-  `2c298c4b46f0a6780037ea4145fb5bf0e9d949ab275f9ab8c5a5b7ade72b8591`
+  `addd9cf3edc35841ae148ee274e4e8b47fbaaf9e6c5cfe5978ee0f2f86ef9678`
 
 To verify the integrity of a downloaded file in Windows PowerShell, run:
 ```powershell
