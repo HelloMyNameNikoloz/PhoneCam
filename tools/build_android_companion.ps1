@@ -9,6 +9,10 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $Project = Join-Path $Root "android\phonecam-companion"
 $DefaultSdk = Join-Path $env:LOCALAPPDATA "Android\Sdk"
 
+if ($OutputDir) {
+    $OutputDir = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputDir))
+}
+
 if (-not $env:ANDROID_HOME -and (Test-Path $DefaultSdk)) {
     $env:ANDROID_HOME = $DefaultSdk
 }

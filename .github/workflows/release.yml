@@ -59,28 +59,57 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
-      - shell: pwsh
-        run: powershell -ExecutionPolicy Bypass -File tools/build_android_companion.ps1 -Version ${{ needs.validate.outputs.version }} -OutputDir release-assets
-      - uses: actions/upload-artifact@v4
+      - name: Build Android Companion
+        shell: pwsh
+        run: |
+          ./tools/build_android_companion.ps1 -Version ${{ needs.validate.outputs.version }} -OutputDir release-assets
+      - name: Diagnostic & Copy APK
+        shell: pwsh
+        run: |
+          Write-Host "=== Diagnostic: Listing Android APK outputs ==="
+          if (Test-Path android/phonecam-companion/app/build/outputs) {
+            Get-ChildItem -Path android/phonecam-companion/app/build/outputs -Recurse -File | Select-Object FullName, Length
+          } else {
+            Write-Warning "outputs directory does not exist!"
+          }
+          
+          # Create release-assets/ directory at the workspace root
+          New-Item -ItemType Directory -Path release-assets -Force | Out-Null
+          
+          # Find and copy built APK
+          $SourceApk = "android/phonecam-companion/app/build/outputs/apk/debug/app-debug.apk"
+          if (-not (Test-Path $SourceApk)) {
+            $SourceApk = "android/phonecam-companion/app/build/outputs/apk/release/app-release.apk"
+          }
+          
+          if (-not (Test-Path $SourceApk)) {
+            Write-Error "Error: Built APK was not found at expected paths!"
+            exit 1
+          }
+          
+          $DestApk = "release-assets/PhoneCam-Android-${{ needs.validate.outputs.version }}.apk"
+          Copy-Item -Path $SourceApk -Destination $DestApk -Force
+          Write-Host "Successfully copied APK from $SourceApk to $DestApk"
+          
+          Write-Host "=== Diagnostic: Listing release-assets/ ==="
+          Get-ChildItem -Path release-assets -Recurse -File | Select-Object FullName, Length
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: android
           path: release-assets/PhoneCam-Android-${{ needs.validate.outputs.version }}.apk
+          if-no-files-found: error
 
   build-windows:
     runs-on: windows-latest
-    needs: [validate, build-android]
+    needs: validate
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: android
-          path: release-assets
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - shell: pwsh
         run: |
-          Copy-Item "release-assets\PhoneCam-Android-${{ needs.validate.outputs.version }}.apk" "phonecam\assets\PhoneCamCompanion.apk" -Force
           Set-Content "phonecam\assets\version.txt" "${{ needs.validate.outputs.version }}".TrimStart("v") -Encoding utf8
           python -m pip install -r phonecam\requirements.txt
           powershell -ExecutionPolicy Bypass -File tools/build_driverless_camera.ps1
@@ -100,10 +129,16 @@ jobs:
     needs: [validate, build-windows, build-android]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
         with:
+          name: android
           path: release-assets
-          merge-multiple: true
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows
+          path: release-assets
       - shell: pwsh
         run: |
           $version = "${{ needs.validate.outputs.version }}"
