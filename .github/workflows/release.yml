@@ -102,27 +102,93 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    needs: validate
+    needs: [validate, build-android]
     steps:
       - uses: actions/checkout@v4
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: release-assets
+      - name: Diagnostic: List Android Artifact
+        shell: pwsh
+        run: |
+          Write-Host "=== Diagnostic: Listing downloaded android artifact folder ==="
+          if (Test-Path release-assets) {
+            Get-ChildItem -Path release-assets -Recurse -File | Select-Object FullName, Length
+          } else {
+            Write-Warning "release-assets directory does not exist!"
+          }
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - shell: pwsh
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          Set-Content "phonecam\assets\version.txt" "${{ needs.validate.outputs.version }}".TrimStart("v") -Encoding utf8
+          # Copy APK to phonecam/assets/PhoneCamCompanion.apk
+          Copy-Item "release-assets\PhoneCam-Android-$env:VERSION.apk" "phonecam\assets\PhoneCamCompanion.apk" -Force
+          
+          Write-Host "=== Diagnostic: Listing phonecam/assets after copying APK ==="
+          Get-ChildItem -Path phonecam/assets -Recurse -File | Select-Object FullName, Length
+          
+          # Setup Python environment and build driverless camera
+          Set-Content "phonecam\assets\version.txt" "$env:VERSION".TrimStart("v") -Encoding utf8
           python -m pip install -r phonecam\requirements.txt
           powershell -ExecutionPolicy Bypass -File tools/build_driverless_camera.ps1
+          
+          # Build PyInstaller executable
           Push-Location phonecam
           python build_tools\build_exe.py
           Pop-Location
-          powershell -ExecutionPolicy Bypass -File tools/build_installer.ps1 -Version ${{ needs.validate.outputs.version }}
+          
+          Write-Host "=== Diagnostic: Listing phonecam/dist after PyInstaller build ==="
+          if (Test-Path phonecam/dist) {
+            Get-ChildItem -Path phonecam/dist -Recurse -File | Select-Object FullName, Length
+          } else {
+            Write-Warning "phonecam/dist does not exist!"
+          }
+          
+          # Verify files exist before running build_installer.ps1
+          if (-not (Test-Path "phonecam\dist\PhoneCam.exe")) {
+            Write-Error "Error: phonecam\dist\PhoneCam.exe is missing!"
+            exit 1
+          }
+          if (-not (Test-Path "phonecam\assets\PhoneCamCompanion.apk")) {
+            Write-Error "Error: phonecam\assets\PhoneCamCompanion.apk is missing!"
+            exit 1
+          }
+          
+          # Run build_installer.ps1
+          powershell -ExecutionPolicy Bypass -File tools/build_installer.ps1 -Version $env:VERSION
+          
+          Write-Host "=== Diagnostic: Listing release/ after MSI build ==="
+          if (Test-Path release) {
+            Get-ChildItem -Path release -Recurse -File | Select-Object FullName, Length
+          } else {
+            Write-Warning "release/ directory does not exist!"
+          }
+          
+          # Find MSI dynamically
+          $MsiFile = Get-ChildItem -Path release -Filter "*.msi" | Select-Object -First 1
+          if (-not $MsiFile) {
+            Write-Error "Error: No MSI file found in release/ directory!"
+            exit 1
+          }
+          Write-Host "Found MSI dynamically: $($MsiFile.FullName)"
+          
+          # Staging MSI in release-assets/
           New-Item -ItemType Directory -Path release-assets -Force | Out-Null
-          Copy-Item "release\PhoneCam-Setup-${{ needs.validate.outputs.version }}.msi" release-assets\
-      - uses: actions/upload-artifact@v4
+          Copy-Item -Path $MsiFile.FullName -Destination "release-assets\" -Force
+          
+          Write-Host "=== Diagnostic: Listing release-assets before upload ==="
+          Get-ChildItem -Path release-assets -Recurse -File | Select-Object FullName, Length
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: windows
           path: release-assets/PhoneCam-Setup-${{ needs.validate.outputs.version }}.msi
+          if-no-files-found: error
 
   package-release:
     runs-on: windows-latest
